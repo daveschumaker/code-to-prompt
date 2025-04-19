@@ -27,7 +27,7 @@ const EXT_TO_LANG: { [key: string]: string } = {
   yaml: 'yaml',
   yml: 'yaml',
   sh: 'bash',
-  rb: 'ruby',
+  rb: 'ruby'
   // Add other extensions as needed
 };
 
@@ -57,7 +57,7 @@ function printDefault(
   writer: Writer,
   filePath: string,
   content: string,
-  lineNumbers: boolean,
+  lineNumbers: boolean
 ): void {
   writer(filePath);
   writer('---');
@@ -76,7 +76,7 @@ function printAsXml(
   writer: Writer,
   filePath: string,
   content: string,
-  lineNumbers: boolean,
+  lineNumbers: boolean
 ): void {
   writer(`<document index="${globalIndex}">`);
   writer(`<source>${filePath}</source>`);
@@ -101,7 +101,7 @@ function printAsMarkdown(
   writer: Writer,
   filePath: string,
   content: string,
-  lineNumbers: boolean,
+  lineNumbers: boolean
 ): void {
   const extension = path.extname(filePath).substring(1);
   const lang = EXT_TO_LANG[extension] || '';
@@ -128,7 +128,7 @@ function printPath(
   content: string,
   claudeXml: boolean,
   markdown: boolean,
-  lineNumbers: boolean,
+  lineNumbers: boolean
 ): void {
   if (claudeXml) {
     printAsXml(writer, filePath, content, lineNumbers);
@@ -160,7 +160,7 @@ interface ProcessPathOptions {
  */
 async function processPath(
   targetPath: string,
-  options: ProcessPathOptions,
+  options: ProcessPathOptions
 ): Promise<void> {
   console.error(chalk.cyan(`[Debug] Processing path: ${targetPath}`));
   let stats: fs.Stats;
@@ -192,8 +192,8 @@ async function processPath(
       chalk.yellow(
         `    [Debug] Skipping due to ignore rules: ${baseName} (path: ${
           relativePath || '<root>'
-        })`, // Log adjusted
-      ),
+        })` // Log adjusted
+      )
     );
     return;
   }
@@ -205,13 +205,13 @@ async function processPath(
     // Filter custom ignore patterns (--ignore) applied to files
     if (
       options.ignorePatterns.some((pattern) =>
-        minimatch(baseName, pattern, { dot: true }),
+        minimatch(baseName, pattern, { dot: true })
       )
     ) {
       console.error(
         chalk.yellow(
-          `    [Debug] Skipping file due to --ignore pattern: ${baseName}`,
-        ),
+          `    [Debug] Skipping file due to --ignore pattern: ${baseName}`
+        )
       );
       return;
     }
@@ -222,16 +222,16 @@ async function processPath(
       const matches = options.extensions.some((ext) => fileExt === ext);
       if (!matches) {
         console.error(
-          chalk.yellow(`    [Debug] Skipping file (ext mismatch): ${baseName}`),
+          chalk.yellow(`    [Debug] Skipping file (ext mismatch): ${baseName}`)
         );
         return;
       }
       console.error(
-        chalk.green(`    [Debug] File passed extension filter: ${baseName}`),
+        chalk.green(`    [Debug] File passed extension filter: ${baseName}`)
       );
     } else {
       console.error(
-        chalk.green(`    [Debug] File added (no ext filter): ${baseName}`),
+        chalk.green(`    [Debug] File added (no ext filter): ${baseName}`)
       );
     }
 
@@ -246,7 +246,7 @@ async function processPath(
         content,
         options.claudeXml,
         options.markdown,
-        options.lineNumbers,
+        options.lineNumbers
       );
     } catch (error: any) {
       const warningMessage = `Warning: Skipping file ${targetPath} due to read error: ${error.message}`;
@@ -261,29 +261,29 @@ async function processPath(
     if (
       !options.ignoreFilesOnly &&
       options.ignorePatterns.some((pattern) =>
-        minimatch(baseName, pattern, { dot: true }),
+        minimatch(baseName, pattern, { dot: true })
       )
     ) {
       console.error(
         chalk.yellow(
-          `    [Debug] Skipping directory due to --ignore pattern: ${baseName}`,
-        ),
+          `    [Debug] Skipping directory due to --ignore pattern: ${baseName}`
+        )
       );
       return; // Skip directory if it matches an ignore pattern
     }
 
     console.error(
-      chalk.cyan(`[Debug] Path is a directory. Reading entries...`),
+      chalk.cyan(`[Debug] Path is a directory. Reading entries...`)
     );
     let entries: fs.Dirent[];
     try {
       entries = await fsp.readdir(targetPath, { withFileTypes: true });
       console.error(
-        chalk.cyan(`[Debug] Found ${entries.length} entries in ${targetPath}`),
+        chalk.cyan(`[Debug] Found ${entries.length} entries in ${targetPath}`)
       );
     } catch (error: any) {
       console.error(
-        chalk.red(`Error reading directory ${targetPath}: ${error.message}`),
+        chalk.red(`Error reading directory ${targetPath}: ${error.message}`)
       );
       return;
     }
@@ -305,7 +305,7 @@ async function processPath(
  * Reads paths from standard input.
  */
 async function readPathsFromStdin(
-  useNullSeparator: boolean,
+  useNullSeparator: boolean
 ): Promise<string[]> {
   if (process.stdin.isTTY) {
     return [];
@@ -332,56 +332,56 @@ async function readPathsFromStdin(
       .option('extension', {
         alias: 'e',
         type: 'string',
-        description: 'File extensions to include',
+        description: 'File extensions to include'
       })
       .option('include-hidden', {
         type: 'boolean',
         default: false,
-        description: 'Include hidden files/folders',
+        description: 'Include hidden files/folders'
       })
       .option('ignore-files-only', {
         type: 'boolean',
         default: false,
-        description: '--ignore only ignores files',
+        description: '--ignore only ignores files'
       })
       .option('ignore-gitignore', {
         type: 'boolean',
         default: false,
-        description: 'Ignore .gitignore files',
+        description: 'Ignore .gitignore files'
       })
       .option('ignore', {
         type: 'string',
-        description: 'Glob patterns to ignore',
+        description: 'Glob patterns to ignore'
       })
       .option('output', {
         alias: 'o',
         type: 'string',
         description: 'Output to file',
-        normalize: true,
+        normalize: true
       })
       .option('cxml', {
         alias: 'c',
         type: 'boolean',
         default: false,
-        description: 'Claude XML format',
+        description: 'Claude XML format'
       })
       .option('markdown', {
         alias: 'm',
         type: 'boolean',
         default: false,
-        description: 'Markdown format',
+        description: 'Markdown format'
       })
       .option('line-numbers', {
         alias: 'n',
         type: 'boolean',
         default: false,
-        description: 'Add line numbers',
+        description: 'Add line numbers'
       })
       .option('null', {
         alias: '0',
         type: 'boolean',
         default: false,
-        description: 'Use NUL separator for stdin',
+        description: 'Use NUL separator for stdin'
       })
       .help()
       .alias('help', 'h')
@@ -390,7 +390,7 @@ async function readPathsFromStdin(
       .strictOptions()
       .parserConfiguration({
         'duplicate-arguments-array': true,
-        'strip-aliased': true,
+        'strip-aliased': true
       })
       .parseAsync();
 
@@ -402,7 +402,7 @@ async function readPathsFromStdin(
     const allPaths = [...cliPaths, ...stdinPaths];
     if (allPaths.length === 0) {
       console.error(
-        chalk.yellow('No input paths provided. Use --help for usage.'),
+        chalk.yellow('No input paths provided. Use --help for usage.')
       );
       process.exit(1);
     }
@@ -410,14 +410,14 @@ async function readPathsFromStdin(
       Array.isArray(argv.extension)
         ? argv.extension
         : argv.extension
-        ? [argv.extension]
-        : []
+          ? [argv.extension]
+          : []
     ).map((ext) => (ext.startsWith('.') ? ext : '.' + ext)); // Normalize extensions
     const ignorePatterns: string[] = Array.isArray(argv.ignore)
       ? argv.ignore
       : argv.ignore
-      ? [argv.ignore]
-      : [];
+        ? [argv.ignore]
+        : [];
     if (argv.cxml && argv.markdown) {
       throw new Error('--cxml and --markdown are mutually exclusive.');
     }
@@ -432,7 +432,7 @@ async function readPathsFromStdin(
         writer = (text: string) => fileStream!.write(text + '\n');
       } catch (error: any) {
         throw new Error(
-          `Cannot write to output file ${argv.output}: ${error.message}`,
+          `Cannot write to output file ${argv.output}: ${error.message}`
         );
       }
     }
@@ -452,35 +452,35 @@ async function readPathsFromStdin(
         if (rules.length > 0) {
           console.error(
             chalk.blue(
-              `[Debug] Initializing ignore patterns from ${gitignorePath} with ${rules.length} rules.`,
-            ),
+              `[Debug] Initializing ignore patterns from ${gitignorePath} with ${rules.length} rules.`
+            )
           );
           mainIg = ignore().add(rules);
         } else {
           console.error(
-            chalk.yellow(`[Debug] No rules found in ${gitignorePath}.`),
+            chalk.yellow(`[Debug] No rules found in ${gitignorePath}.`)
           );
         }
       } catch (error: any) {
         if (error.code === 'ENOENT') {
           console.error(
             chalk.yellow(
-              `[Debug] No .gitignore file found at ${baseIgnorePath}.`,
-            ),
+              `[Debug] No .gitignore file found at ${baseIgnorePath}.`
+            )
           );
         } else {
           console.error(
             chalk.yellow(
-              `[Debug] Could not read main .gitignore: ${error.message}`,
-            ),
+              `[Debug] Could not read main .gitignore: ${error.message}`
+            )
           );
         }
       }
     } else {
       console.error(
         chalk.yellow(
-          `[Debug] Ignoring .gitignore file due to --ignore-gitignore flag.`,
-        ),
+          `[Debug] Ignoring .gitignore file due to --ignore-gitignore flag.`
+        )
       );
     }
 
@@ -495,8 +495,8 @@ async function readPathsFromStdin(
       } catch (error: any) {
         console.error(
           chalk.red(
-            `Error: Input path "${targetPath}" not found or inaccessible.`,
-          ),
+            `Error: Input path "${targetPath}" not found or inaccessible.`
+          )
         );
         continue;
       }
@@ -511,7 +511,7 @@ async function readPathsFromStdin(
         markdown: argv.markdown ?? false,
         lineNumbers: argv['line-numbers'] ?? false,
         mainIg, // Pass the ignore instance
-        baseIgnorePath, // Pass the base path
+        baseIgnorePath // Pass the base path
       };
       await processPath(path.resolve(targetPath), options); // Process absolute path
     }
