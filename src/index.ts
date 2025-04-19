@@ -130,7 +130,11 @@ async function processPath(
   let isIgnoredByGitignore = false;
   if (relativePath) {
     // <-- Only check if relativePath is NOT empty
-    isIgnoredByGitignore = options.mainIg.ignores(relativePath);
+    try {
+      isIgnoredByGitignore = options.mainIg.ignores(relativePath);
+    } catch {
+      isIgnoredByGitignore = false;
+    }
   }
   // Now use the result of the check
   if (isIgnoredByGitignore) {
