@@ -10,7 +10,7 @@ import path from 'path'; // Node's Path module
 import { minimatch } from 'minimatch'; // Keep for --ignore patterns
 import chalk from 'chalk'; // For terminal colors like click.style
 import ignore, { Ignore } from 'ignore'; // Import the ignore library
-import type { ErrnoException } from './types';
+import type { ErrnoException, MaybeError } from './types';
 import {
   addLineNumbers,
   printDefault,
@@ -53,8 +53,12 @@ async function processPath(
   let stats: fs.Stats;
   try {
     stats = await fsp.stat(targetPath);
-  } catch (error: unknown) {
-    /* ... error handling ... */ return;
+  } catch (error: MaybeError) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error(
+      chalk.red(`Error accessing path ${targetPath}: ${errMsg}`)
+    );
+    return; // Skip this path if stat fails
   }
 
   const baseName = path.basename(targetPath);
