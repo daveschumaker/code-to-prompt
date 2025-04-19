@@ -2,7 +2,7 @@ import os from 'os';
 import path from 'path';
 import fs from 'fs/promises';
 import ignore from 'ignore';
-import { generateFileTree } from '../../src/index';
+import { generateFileTree } from '../../src/lib/fileTree';
 
 describe('FileTree Generator', () => {
   it('builds a flat directory tree', async () => {

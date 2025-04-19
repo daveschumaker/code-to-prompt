@@ -5,7 +5,7 @@ import {
   printAsXml,
   printAsMarkdown,
   printPath,
-  globalIndex
+  resetGlobalIndex
 } from '../../src/lib/printers';
 
 describe('Printers Module', () => {
@@ -53,7 +53,7 @@ describe('Printers Module', () => {
     });
 
     describe('printAsXml', () => {
-      beforeEach(() => { globalIndex = 1; });
+      beforeEach(() => { resetGlobalIndex(); });
       it('escapes xml chars and increments index', () => {
         const output: string[] = [];
         const writer = (text: string) => output.push(text);

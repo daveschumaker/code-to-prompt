@@ -2,6 +2,10 @@ import path from 'path';
 import { EXT_TO_LANG } from './processor';
 
 export let globalIndex = 1;
+
+export function resetGlobalIndex(): void {
+  globalIndex = 1;
+}
 export type Writer = (text: string) => void;
 
 /**
@@ -105,4 +109,4 @@ function printPath(
   }
 }
 
-export { addLineNumbers, printDefault, printAsXml, printAsMarkdown, printPath };
+export { addLineNumbers, printDefault, printAsXml, printAsMarkdown, printPath, resetGlobalIndex };
