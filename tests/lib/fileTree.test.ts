@@ -27,7 +27,7 @@ describe('FileTree Generator', () => {
       baseIgnorePath: tmp,
       mainIg: ignore(),
       includeHidden: false
-    } as any);
+    } as FileTreeOptions);
     expect(tree).toContain('root.txt');
     expect(tree).toContain('sub');
     expect(tree).toContain('child.txt');
@@ -41,7 +41,7 @@ describe('FileTree Generator', () => {
       baseIgnorePath: tmp,
       mainIg: ignore(),
       includeHidden: false
-    } as any);
+    } as FileTreeOptions);
     expect(tree).not.toContain('.secret');
     expect(tree).toContain('public.txt');
   });
@@ -55,7 +55,7 @@ describe('FileTree Generator', () => {
       baseIgnorePath: tmp,
       mainIg: ig,
       includeHidden: false
-    } as any);
+    } as FileTreeOptions);
     expect(tree).toContain('keep.txt');
     expect(tree).not.toContain('skip.log');
   });
