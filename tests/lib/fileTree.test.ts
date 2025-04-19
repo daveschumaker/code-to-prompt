@@ -2,7 +2,7 @@ import os from 'os';
 import path from 'path';
 import fs from 'fs/promises';
 import ignore from 'ignore';
-import { generateFileTree } from '../../src/lib/fileTree';
+import { generateFileTree, FileTreeOptions } from '../../src/lib/fileTree';
 
 describe('FileTree Generator', () => {
   it('builds a flat directory tree', async () => {
@@ -13,7 +13,7 @@ describe('FileTree Generator', () => {
       baseIgnorePath: tmp,
       mainIg: ignore(),
       includeHidden: false
-    } as any);
+    } as FileTreeOptions);
     expect(tree).toBe('.\n├── a.txt\n└── b.txt');
   });
 
