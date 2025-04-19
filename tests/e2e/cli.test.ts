@@ -1,27 +1,21 @@
 // tests/e2e/cli.test.ts (conceptual)
 import { spawnSync } from 'child_process';
 import path from 'path';
+import os from 'os';
 import fs from 'fs/promises'; // Or use fs-extra for easier temp dir handling
 
 const cliEntryPoint = path.resolve(__dirname, '../../dist/index.js');
-const fixturesDir = path.resolve(__dirname, 'fixtures'); // Directory with test files
+// we will use os.tmpdir() instead of a fixturesDir
 
 describe('CLI End-to-End Tests', () => {
   let tempTestDir: string;
 
   beforeEach(async () => {
     // Create a temporary directory for the test run
-    // Copy necessary fixture files into it (e.g., test.txt, hidden.js, .gitignore)
-    tempTestDir = await fs.mkdtemp(path.join(fixturesDir, 'test-run-'));
-    // Example: copy a fixture file
-    await fs.copyFile(
-      path.join(fixturesDir, 'sample.txt'),
-      path.join(tempTestDir, 'sample.txt')
-    );
-    await fs.writeFile(
-      path.join(tempTestDir, '.gitignore'),
-      '*.log\nnode_modules/'
-    );
+    tempTestDir = await fs.mkdtemp(path.join(os.tmpdir(), 'code-to-prompt-test-run-'));
+    // Create sample.txt and .gitignore in the temp directory
+    await fs.writeFile(path.join(tempTestDir, 'sample.txt'), '');
+    await fs.writeFile(path.join(tempTestDir, '.gitignore'), '*.log\nnode_modules/');
   });
 
   afterEach(async () => {
