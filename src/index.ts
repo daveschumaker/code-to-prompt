@@ -204,9 +204,9 @@ async function processPath(
         minimatch(baseName, pattern, { dot: true })
       )
     ) {
-      console.error(
+      options.debug(
         chalk.yellow(
-          `    [Debug] Skipping directory due to --ignore pattern: ${baseName}`
+          `Skipping directory due to --ignore pattern: ${baseName}`
         )
       );
       return; // Skip directory if it matches an ignore pattern
