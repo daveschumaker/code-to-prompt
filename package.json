@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "my-cli": "dist/index.js"
+    "code-to-prompt": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -22,9 +22,12 @@
   "author": "Dave Schumaker <daveschumaker@users.noreply.github.com>",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^5.4.1",
+    "minimatch": "^10.0.1",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@types/minimatch": "^5.1.2",
     "@types/node": "^22.14.1",
     "@types/yargs": "^17.0.33",
     "ts-node": "^10.9.2",
