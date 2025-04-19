@@ -36,6 +36,7 @@ interface ProcessPathOptions {
   baseIgnorePath: string; // Path relative to which ignore rules apply
   tree: boolean; // Generate file tree at top
   debug: (msg: string) => void; // Debug logging helper
+  stats: { foundFiles: number; skippedFiles: number }; // Run stats
 }
 
 /**
@@ -161,6 +162,7 @@ async function processPath(
       options.debug(
         chalk.yellow(`Skipping file due to --ignore pattern: ${baseName}`)
       );
+      options.stats.skippedFiles++;
       return;
     }
 
@@ -172,6 +174,7 @@ async function processPath(
         options.debug(
           chalk.yellow(`Skipping file (ext mismatch): ${baseName}`)
         );
+        options.stats.skippedFiles++;
         return;
       }
       options.debug(chalk.green(`File passed extension filter: ${baseName}`));
@@ -192,6 +195,7 @@ async function processPath(
         options.markdown,
         options.lineNumbers
       );
+      options.stats.foundFiles++;
     } catch (error: any) {
       const warningMessage = `Warning: Skipping file ${targetPath} due to read error: ${error.message}`;
       console.error(chalk.yellow(warningMessage));
@@ -265,6 +269,7 @@ async function readPathsFromStdin(
 // --- Main CLI Execution ---
 
 (async () => {
+  const startTime = Date.now();
   try {
     // --- Yargs Argument Parsing Setup ---
     const argv = await yargs(hideBin(process.argv))
@@ -350,6 +355,7 @@ async function readPathsFromStdin(
     const debug = (msg: string) => {
       if (verbose) console.error(msg);
     };
+    const stats = { foundFiles: 0, skippedFiles: 0 };
 
     // --- Prepare Arguments and Options ---
     const cliPaths = (argv._ as string[]) || [];
@@ -489,7 +495,8 @@ async function readPathsFromStdin(
         mainIg, // Pass the ignore instance
         baseIgnorePath, // Pass the base path
         tree: argv.tree ?? false, // Whether to generate file tree
-        debug: debug
+        debug: debug,
+        stats: stats
       };
       await processPath(path.resolve(targetPath), options); // Process absolute path
     }
@@ -504,6 +511,20 @@ async function readPathsFromStdin(
         fileStream!.end(() => resolve());
       });
     }
+
+    // Print run statistics to terminal
+    const endTime = Date.now();
+    console.error(`\nStats:`);
+    console.error(`Total files found: ${stats.foundFiles}`);
+    console.error(`Files skipped: ${stats.skippedFiles}`);
+    if (argv.output) {
+      try {
+        const { size } = await fsp.stat(argv.output);
+        console.error(`Output file size: ${size} bytes`);
+      } catch {}
+    }
+    console.error(`Generation time: ${((endTime - startTime) / 1000).toFixed(2)}s`);
+
   } catch (error: any) {
     console.error(chalk.red(`\n❌ Error: ${error.message}`));
     // console.error(error.stack); // Uncomment for debugging stack traces
