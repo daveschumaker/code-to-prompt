@@ -38,6 +38,38 @@ interface ProcessPathOptions {
 }
 
 /**
+ * Generates a simple file‐tree listing for the given paths.
+ */
+async function generateFileTree(
+  paths: string[],
+  options: ProcessPathOptions
+): Promise<string> {
+  const fileSet = new Set<string>();
+  async function recurse(p: string) {
+    const stats = await fsp.stat(p);
+    if (stats.isDirectory()) {
+      const entries = await fsp.readdir(p, { withFileTypes: true });
+      for (const e of entries) {
+        await recurse(path.join(p, e.name));
+      }
+    } else if (stats.isFile()) {
+      fileSet.add(p);
+    }
+  }
+  for (const p of paths) {
+    await recurse(p);
+  }
+  const rels = Array.from(fileSet)
+    .map((p) => path.relative(options.baseIgnorePath, p))
+    .sort();
+  let tree = '.\n';
+  for (const r of rels) {
+    tree += `├── ${r}\n`;
+  }
+  return tree;
+}
+
+/**
  * Processes a path (file or directory) recursively.
  */
 async function processPath(
