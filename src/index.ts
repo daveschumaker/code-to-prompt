@@ -397,6 +397,15 @@ async function readPathsFromStdin(
     // --- Read Root .gitignore and Create Ignore Instance ---
     const baseIgnorePath = process.cwd(); // Assume .gitignore is relative to CWD
     let mainIg: Ignore = ignore();
+    // Wrap ignores to avoid thrown errors on non-relative paths
+    const _origIgnores = mainIg.ignores.bind(mainIg);
+    mainIg.ignores = (p: string): boolean => {
+      try {
+        return _origIgnores(p);
+      } catch {
+        return false;
+      }
+    };
 
     if (!(argv['ignore-gitignore'] ?? false)) {
       try {
@@ -413,6 +422,15 @@ async function readPathsFromStdin(
             )
           );
           mainIg = ignore().add(rules);
+          // Wrap ignores on the new instance as well
+          const _origIgnores2 = mainIg.ignores.bind(mainIg);
+          mainIg.ignores = (p: string): boolean => {
+            try {
+              return _origIgnores2(p);
+            } catch {
+              return false;
+            }
+          };
         } else {
           debug(chalk.yellow(`No rules found in ${gitignorePath}.`));
         }
