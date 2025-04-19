@@ -402,8 +402,8 @@ async function readPathsFromStdin(
     }
 
     // --- Process Paths ---
-    if (options.tree) {
-      const treeStr = await generateFileTree(allPaths, options)
+    if (argv.tree) {
+      const treeStr = await generateFileTree(allPaths, { baseIgnorePath } as ProcessPathOptions);
       writer(treeStr.trimEnd())
     }
     if (argv.cxml) {
