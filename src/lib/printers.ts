@@ -1,5 +1,4 @@
 import path from 'path';
-import { EXT_TO_LANG } from './processor';
 
 export let globalIndex = 1;
 

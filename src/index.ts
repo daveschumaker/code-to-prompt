@@ -41,7 +41,6 @@ interface ProcessPathOptions {
   stats: { foundFiles: number; skippedFiles: number }; // Run stats
 }
 
-
 /**
  * Processes a path (file or directory) recursively.
  */
@@ -55,10 +54,8 @@ async function processPath(
     stats = await fsp.stat(targetPath);
   } catch (error: MaybeError) {
     const errMsg = error instanceof Error ? error.message : String(error);
-    console.error(
-      chalk.red(`Error accessing path ${targetPath}: ${errMsg}`)
-    );
-    return; // Skip this path if stat fails
+    console.error(chalk.red(`Error accessing path ${targetPath}: ${errMsg}`));
+    return;
   }
 
   const baseName = path.basename(targetPath);
@@ -350,9 +347,7 @@ async function readPathsFromStdin(
         writer = (text: string) => fileStream!.write(text + '\n');
       } catch (error: unknown) {
         const msg = error instanceof Error ? error.message : String(error);
-        throw new Error(
-          `Cannot write to output file ${argv.output}: ${msg}`
-        );
+        throw new Error(`Cannot write to output file ${argv.output}: ${msg}`);
       }
     }
 
@@ -401,9 +396,7 @@ async function readPathsFromStdin(
         if (err.code === 'ENOENT') {
           debug(chalk.yellow(`No .gitignore file found at ${baseIgnorePath}.`));
         } else {
-          debug(
-            chalk.yellow(`Could not read main .gitignore: ${err.message}`)
-          );
+          debug(chalk.yellow(`Could not read main .gitignore: ${err.message}`));
         }
       }
     } else {
@@ -482,8 +475,9 @@ async function readPathsFromStdin(
         console.error(`Output file size: ${formatBytes(size)}`);
       } catch {}
     }
-    console.error(`Generation time: ${((endTime - startTime) / 1000).toFixed(2)}s`);
-
+    console.error(
+      `Generation time: ${((endTime - startTime) / 1000).toFixed(2)}s`
+    );
   } catch (error: any) {
     console.error(chalk.red(`\n❌ Error: ${error.message}`));
     // console.error(error.stack); // Uncomment for debugging stack traces
