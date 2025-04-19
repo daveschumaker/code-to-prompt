@@ -14,6 +14,52 @@ import type { ErrnoException, MaybeError } from './types';
 import { printPath, Writer } from './lib/printers';
 import { generateFileTree, FileTreeOptions } from './lib/fileTree'; // Import FileTreeOptions
 
+// --- Helper Functions ---
+
+/**
+ * Finds the longest common ancestor path from a list of absolute paths.
+ */
+function findCommonAncestor(paths: string[]): string {
+  if (!paths || paths.length === 0) {
+    return process.cwd(); // Default to CWD if no paths
+  }
+  if (paths.length === 1) {
+    // If it's a file, return its directory, otherwise the path itself
+    try {
+        // Use sync stat here as it's simpler logic for this helper
+        const stats = fs.statSync(paths[0]);
+        return stats.isDirectory() ? paths[0] : path.dirname(paths[0]);
+    } catch {
+        // If stat fails, fallback to dirname
+        return path.dirname(paths[0]);
+    }
+  }
+
+  const pathComponents = paths.map(p => p.split(path.sep).filter(Boolean)); // Split and remove empty strings
+
+  let commonAncestorComponents: string[] = [];
+  const firstPathComponents = pathComponents[0];
+
+  for (let i = 0; i < firstPathComponents.length; i++) {
+    const component = firstPathComponents[i];
+    // Check if this component exists in the same position in all other paths
+    if (pathComponents.every(p => p.length > i && p[i] === component)) {
+      commonAncestorComponents.push(component);
+    } else {
+      break; // Stop at the first mismatch
+    }
+  }
+
+  // Handle the root case (e.g., '/' or 'C:\')
+  const rootSeparator = paths[0].startsWith(path.sep) ? path.sep : '';
+  const commonPath = rootSeparator + commonAncestorComponents.join(path.sep);
+
+  // If the common path is empty (e.g., paths like /a/b and /c/d), return the root
+  // Or if it's just the root separator, return that.
+  return commonPath || rootSeparator || process.cwd(); // Fallback to CWD if truly no commonality
+}
+
+
 // --- Core Logic ---
 
 // Updated Options interface
@@ -401,23 +447,12 @@ async function readPathsFromStdin(
     const absolutePaths = allPaths.map(p => path.resolve(p)); // Resolve all paths first
 
     if (argv.tree) {
-      let treeDisplayRoot = process.cwd(); // Default
-      if (absolutePaths.length > 0) {
-          const firstPath = absolutePaths[0];
-          try {
-              const stats = await fsp.stat(firstPath);
-              treeDisplayRoot = stats.isDirectory() ? firstPath : path.dirname(firstPath);
-          } catch (err: MaybeError) {
-              // If stat fails on the first path, use its dirname as a fallback root
-              console.error(chalk.yellow(`Warning: Could not stat ${firstPath}, using its directory for tree root.`));
-              treeDisplayRoot = path.dirname(firstPath);
-          }
-          // Note: For multiple paths, using the first path's dir is a heuristic.
-          // A true common ancestor calculation could be added here if needed.
-      }
+      // Calculate the common ancestor directory for the tree root
+      const treeDisplayRoot = findCommonAncestor(absolutePaths);
+      debug(chalk.blue(`Tree display root calculated as: ${treeDisplayRoot}`));
 
       writer('Folder structure:');
-      writer(treeDisplayRoot + path.sep); // Use the calculated display root
+      writer(treeDisplayRoot + path.sep); // Use the common ancestor display root
       writer('---');
       // Pass the calculated treeDisplayRoot as baseIgnorePath *for tree generation only*
       const treeOptions: FileTreeOptions = {
