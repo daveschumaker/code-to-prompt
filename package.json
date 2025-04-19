@@ -23,6 +23,19 @@
     "nodejs"
   ],
   "author": "Dave Schumaker <daveschumaker@users.noreply.github.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daveschumaker/code-to-prompt.git"
+  },
+  "homepage": "https://github.com/daveschumaker/code-to-prompt#readme",
+  "bugs": {
+    "url": "https://github.com/daveschumaker/code-to-prompt/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "license": "MIT",
   "dependencies": {
     "chalk": "^5.4.1",
