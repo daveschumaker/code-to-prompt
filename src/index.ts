@@ -434,6 +434,9 @@ async function readPathsFromStdin(
 
     // --- Process Paths ---
     if (argv.tree) {
+      writer('Folder structure:');
+      writer(baseIgnorePath + path.sep);
+      writer('---');
       const treeStr = await generateFileTree(
         allPaths,
         {
@@ -443,6 +446,8 @@ async function readPathsFromStdin(
         } as ProcessPathOptions
       );
       writer(treeStr.trimEnd());
+      writer('---');
+      writer('');
     }
     if (argv.cxml) {
       writer('<documents>');

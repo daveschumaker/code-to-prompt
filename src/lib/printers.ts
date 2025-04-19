@@ -25,14 +25,14 @@ function printDefault(
   content: string,
   lineNumbers: boolean
 ): void {
-  writer(filePath);
+  writer(`File: ${filePath}`);
   writer('---');
   if (lineNumbers) {
     content = addLineNumbers(content);
   }
   writer(content);
-  writer('');
   writer('---');
+  writer('');
 }
 
 /**
