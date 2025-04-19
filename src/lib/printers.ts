@@ -109,4 +109,4 @@ function printPath(
   }
 }
 
-export { addLineNumbers, printDefault, printAsXml, printAsMarkdown, printPath, resetGlobalIndex };
+export { addLineNumbers, printDefault, printAsXml, printAsMarkdown, printPath };

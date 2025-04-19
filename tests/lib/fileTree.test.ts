@@ -14,7 +14,7 @@ describe('FileTree Generator', () => {
       mainIg: ignore(),
       includeHidden: false
     } as any);
-    expect(tree).toBe('.\n├── a.txt\n├── b.txt');
+    expect(tree).toBe('.\n├── a.txt\n└── b.txt');
   });
 
   it('builds a nested directory tree', async () => {
