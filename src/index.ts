@@ -155,9 +155,7 @@ async function processPath(
       )
     ) {
       console.error(
-        chalk.yellow(
-          `    Skipping file due to --ignore pattern: ${baseName}`
-        )
+        chalk.yellow(`Skipping file due to --ignore pattern: ${baseName}`)
       );
       return;
     }
@@ -168,17 +166,13 @@ async function processPath(
       const matches = options.extensions.some((ext) => fileExt === ext);
       if (!matches) {
         console.error(
-          chalk.yellow(`    Skipping file (ext mismatch): ${baseName}`)
+          chalk.yellow(`Skipping file (ext mismatch): ${baseName}`)
         );
         return;
       }
-      console.error(
-        chalk.green(`    File passed extension filter: ${baseName}`)
-      );
+      console.error(chalk.green(`File passed extension filter: ${baseName}`));
     } else {
-      console.error(
-        chalk.green(`    File added (no ext filter): ${baseName}`)
-      );
+      console.error(chalk.green(`File added (no ext filter): ${baseName}`));
     }
 
     // Read and Print (if not skipped by filters above)
@@ -218,9 +212,7 @@ async function processPath(
       return; // Skip directory if it matches an ignore pattern
     }
 
-    console.error(
-      chalk.cyan(`Path is a directory. Reading entries...`)
-    );
+    console.error(chalk.cyan(`Path is a directory. Reading entries...`));
     let entries: fs.Dirent[];
     try {
       entries = await fsp.readdir(targetPath, { withFileTypes: true });
@@ -353,7 +345,9 @@ async function readPathsFromStdin(
 
     // Enable conditional debug logging
     const verbose = argv.verbose ?? false;
-    const debug = (msg: string) => { if (verbose) console.error(msg); };
+    const debug = (msg: string) => {
+      if (verbose) console.error(msg);
+    };
 
     // --- Prepare Arguments and Options ---
     const cliPaths = (argv._ as string[]) || [];
@@ -416,30 +410,22 @@ async function readPathsFromStdin(
           );
           mainIg = ignore().add(rules);
         } else {
-          console.error(
-            chalk.yellow(`No rules found in ${gitignorePath}.`)
-          );
+          console.error(chalk.yellow(`No rules found in ${gitignorePath}.`));
         }
       } catch (error: any) {
         if (error.code === 'ENOENT') {
           console.error(
-            chalk.yellow(
-              `No .gitignore file found at ${baseIgnorePath}.`
-            )
+            chalk.yellow(`No .gitignore file found at ${baseIgnorePath}.`)
           );
         } else {
           console.error(
-            chalk.yellow(
-              `Could not read main .gitignore: ${error.message}`
-            )
+            chalk.yellow(`Could not read main .gitignore: ${error.message}`)
           );
         }
       }
     } else {
       console.error(
-        chalk.yellow(
-          `Ignoring .gitignore file due to --ignore-gitignore flag.`
-        )
+        chalk.yellow(`Ignoring .gitignore file due to --ignore-gitignore flag.`)
       );
     }
 
@@ -448,14 +434,11 @@ async function readPathsFromStdin(
       writer('Folder structure:');
       writer(baseIgnorePath + path.sep);
       writer('---');
-      const treeStr = await generateFileTree(
-        allPaths,
-        {
-          baseIgnorePath,
-          mainIg,
-          includeHidden: argv['include-hidden'] ?? false
-        } as ProcessPathOptions
-      );
+      const treeStr = await generateFileTree(allPaths, {
+        baseIgnorePath,
+        mainIg,
+        includeHidden: argv['include-hidden'] ?? false
+      } as ProcessPathOptions);
       writer(treeStr.trimEnd());
       writer('---');
       writer('');
