@@ -35,6 +35,7 @@ interface ProcessPathOptions {
   mainIg: Ignore; // The ignore instance
   baseIgnorePath: string; // Path relative to which ignore rules apply
   tree: boolean; // Generate file tree at top
+  debug: (msg: string) => void; // Debug logging helper
 }
 
 /**
@@ -107,7 +108,7 @@ async function processPath(
   targetPath: string,
   options: ProcessPathOptions
 ): Promise<void> {
-  debug(chalk.cyan(`[Debug] Processing path: ${targetPath}`));
+  options.debug(chalk.cyan(`[Debug] Processing path: ${targetPath}`));
   let stats: fs.Stats;
   try {
     stats = await fsp.stat(targetPath);
@@ -486,7 +487,8 @@ async function readPathsFromStdin(
         lineNumbers: argv['line-numbers'] ?? false,
         mainIg, // Pass the ignore instance
         baseIgnorePath, // Pass the base path
-        tree: argv.tree ?? false // Whether to generate file tree
+        tree: argv.tree ?? false, // Whether to generate file tree
+        debug: debug
       };
       await processPath(path.resolve(targetPath), options); // Process absolute path
     }
