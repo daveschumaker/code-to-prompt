@@ -34,7 +34,8 @@ This method makes the `code-to-prompt` command available anywhere in your termin
 1.  **Clone the repository:**
 
     ```bash
-    git clone [https://github.com/your-username/code-to-prompt.git](https://github.com/your-username/code-to-prompt.git) # Replace with your repo URL
+    # Replace with your actual repository URL if different
+    git clone https://github.com/your-username/code-to-prompt.git
     cd code-to-prompt
     ```
 
@@ -82,17 +83,84 @@ The basic command structure is:
 
 ```bash
 code-to-prompt [options] [paths...]
-[paths...]: One or more file or directory paths to process.[options]: Flags to control filtering, formatting, and output.You can also pipe paths into the tool, for example using find or fd:find ./src -name "*.ts" | code-to-prompt
+```
+
+-   `[paths...]`: One or more file or directory paths to process. If omitted, paths are read from standard input.
+-   `[options]`: Flags to control filtering, formatting, and output (see below).
+
+You can also pipe paths into the tool, for example using `find` or `fd`:
+
+```bash
+find ./src -name "*.ts" | code-to-prompt
 # Use -0 with find's -print0 for paths with special characters
 find ./src -name "*.ts" -print0 | code-to-prompt -0
-OptionsOptionAliasDescriptionDefaultpaths...Input file or directory paths (also reads from stdin if no paths given).--extension-eFile extension(s) to include (e.g., -e .ts -e .js). Can be repeated.(Include all)--include-hiddenInclude hidden files and folders (those starting with .).false--ignore-files-onlyMakes --ignore patterns only apply to files, not directories.false--ignore-gitignoreIgnore .gitignore files and include all files found.false--ignoreGlob pattern(s) to ignore using minimatch. Can be repeated (e.g., --ignore "*.log").[]--output-oOutput to a specified file instead of standard output.stdout--cxml-cOutput in Claude-friendly XML format. Mutually exclusive with -m.false--markdown-mOutput in Markdown format with fenced code blocks. Mutually exclusive with -c.false--line-numbers-nAdd line numbers to the content of each file in the output.false--null-0Use NUL (\0) character as separator when reading paths from stdin.false--treePrepend a file tree structure overview to the output.false--verbose-VEnable verbose debug logging to stderr.false--help-hShow help message.--version-vShow version number.Examples1. Process all non-ignored files in the current directory:code-to-prompt .
+```
+
+### Options
+
+| Option              | Alias | Description                                                                      | Default      |
+| ------------------- | ----- | -------------------------------------------------------------------------------- | ------------ |
+| `paths...`          |       | Input file or directory paths (reads from stdin if no paths given).              |              |
+| `--extension`       | `-e`  | File extension(s) to include (e.g., `-e .ts -e .js`). Can be repeated.           | (Include all)|
+| `--include-hidden`  |       | Include hidden files and folders (those starting with `.`).                      | `false`      |
+| `--ignore-files-only`|      | Makes `--ignore` patterns only apply to files, not directories.                  | `false`      |
+| `--ignore-gitignore`|       | Ignore `.gitignore` files and include all files found.                           | `false`      |
+| `--ignore`          |       | Glob pattern(s) to ignore using minimatch. Can be repeated (e.g., `--ignore "*.log"`). | `[]`         |
+| `--output`          | `-o`  | Output to a specified file instead of standard output.                           | `stdout`     |
+| `--cxml`            | `-c`  | Output in Claude-friendly XML format. Mutually exclusive with `-m`.              | `false`      |
+| `--markdown`        | `-m`  | Output in Markdown format with fenced code blocks. Mutually exclusive with `-c`. | `false`      |
+| `--line-numbers`    | `-n`  | Add line numbers to the content of each file in the output.                      | `false`      |
+| `--null`            | `-0`  | Use NUL (`\0`) character as separator when reading paths from stdin.             | `false`      |
+| `--tree`            |       | Prepend a file tree structure overview to the output.                            | `false`      |
+| `--verbose`         | `-V`  | Enable verbose debug logging to stderr.                                          | `false`      |
+| `--help`            | `-h`  | Show help message.                                                               |              |
+| `--version`         | `-v`  | Show version number.                                                             |              |
+
+### Examples
+
+1.  **Process all non-ignored files in the current directory:**
+    ```bash
+    code-to-prompt .
+    ```
 2. Process only TypeScript and JavaScript files in the src directory:code-to-prompt -e .ts -e .js ./src
-3. Process files in src and tests, ignoring .log files and node_modules (via .gitignore), outputting as Markdown to a file:# Assumes .gitignore includes node_modules/ and *.log
-code-to-prompt ./src ./tests --markdown -o prompt.md
-4. Explicitly ignore build artifacts and test snapshots:code-to-prompt . --ignore "dist/**" --ignore "**/*.snap"
-5. Process specific files and add line numbers:code-to-prompt src/index.ts src/lib/printers.ts --line-numbers
-6. Generate a file tree overview for the src directory:code-to-prompt --tree ./src
-7. Combine find with code-to-prompt using null separator:find ./src -type f \( -name "*.ts" -o -name "*.json" \) -print0 | code-to-prompt -0 --markdown
-8. Output in Claude XML format, including hidden files:code-to-prompt --cxml --include-hidden .
-DevelopmentClone the repository.Install dependencies: npm installBuild the TypeScript code: npm run buildRun tests: npm test (Note: You'll need to update the test script in package.json to actually run Jest/Vitest).Run in development mode (uses ts-node): npm run dev -- [options] [paths...] (note the -- before passing args to the script).LicenseThis project is licensed under the MIT License. See the LICENSE file for details.AcknowledgementsThis tool was heavily inspired by Simon Willison's [files-to-prompt](
+3.  **Process files in `src` and `tests`, ignoring `.log` files and `node_modules` (via `.gitignore`), outputting as Markdown to a file:**
+    ```bash
+    # Assumes .gitignore includes node_modules/ and *.log
+    code-to-prompt ./src ./tests --markdown -o prompt.md
+    ```
+4.  **Explicitly ignore build artifacts and test snapshots:**
+    ```bash
+    code-to-prompt . --ignore "dist/**" --ignore "**/*.snap"
+    ```
+5.  **Process specific files and add line numbers:**
+    ```bash
+    code-to-prompt src/index.ts src/lib/printers.ts --line-numbers
+    ```
+6.  **Generate a file tree overview for the `src` directory:**
+    ```bash
+    code-to-prompt --tree ./src
+    ```
+7.  **Combine `find` with `code-to-prompt` using null separator:**
+    ```bash
+    find ./src -type f \( -name "*.ts" -o -name "*.json" \) -print0 | code-to-prompt -0 --markdown
+    ```
+8.  **Output in Claude XML format, including hidden files:**
+    ```bash
+    code-to-prompt --cxml --include-hidden .
+    ```
+
+## Development
+
+1.  Clone the repository.
+2.  Install dependencies: `npm install`
+3.  Build the TypeScript code: `npm run build`
+4.  Run tests: `npm test`
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+## Acknowledgements
+
+This tool was heavily inspired by Simon Willison's [files-to-prompt](https://github.com/simonw/files-to-prompt).
 ```
