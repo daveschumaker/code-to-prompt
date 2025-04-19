@@ -38,7 +38,7 @@ interface ProcessPathOptions {
 }
 
 /**
- * Generates a simple file‐tree listing for the given paths.
+ * Generates a nested file‐tree listing for the given paths.
  */
 async function generateFileTree(
   paths: string[],
@@ -70,11 +70,34 @@ async function generateFileTree(
   const rels = Array.from(fileSet)
     .map((p) => path.relative(options.baseIgnorePath, p))
     .sort();
-  let tree = '.\n';
-  for (const r of rels) {
-    tree += `├── ${r}\n`;
+
+  // Build nested tree structure
+  type TreeNode = { [name: string]: TreeNode };
+  const treeRoot: TreeNode = {};
+  for (const relPath of rels) {
+    const parts = relPath.split(path.sep);
+    let current = treeRoot;
+    for (const part of parts) {
+      if (!current[part]) {
+        current[part] = {};
+      }
+      current = current[part];
+    }
   }
-  return tree;
+
+  const lines: string[] = ['.'];
+  function render(node: TreeNode, prefix: string) {
+    const entries = Object.keys(node);
+    entries.forEach((name, index) => {
+      const isLast = index === entries.length - 1;
+      const connector = isLast ? '└── ' : '├── ';
+      lines.push(`${prefix}${connector}${name}`);
+      const childPrefix = prefix + (isLast ? '    ' : '│   ');
+      render(node[name], childPrefix);
+    });
+  }
+  render(treeRoot, '');
+  return lines.join('\n');
 }
 
 /**
