@@ -1,8 +1,8 @@
 import path from 'path';
 import { EXT_TO_LANG } from './processor';
 
-let globalIndex = 1;
-type Writer = (text: string) => void;
+export let globalIndex = 1;
+export type Writer = (text: string) => void;
 
 /**
  * Adds line numbers to content block.

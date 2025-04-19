@@ -15,7 +15,9 @@ import {
   printDefault,
   printAsXml,
   printAsMarkdown,
-  printPath
+  printPath,
+  Writer,
+  globalIndex
 } from './lib/printers';
 
 
