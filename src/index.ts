@@ -19,6 +19,7 @@ import {
   Writer,
   globalIndex
 } from './lib/printers';
+import { generateFileTree } from './lib/fileTree';
 
 // --- Core Logic ---
 
@@ -39,68 +40,6 @@ interface ProcessPathOptions {
   stats: { foundFiles: number; skippedFiles: number }; // Run stats
 }
 
-/**
- * Generates a nested file‐tree listing for the given paths.
- */
-export async function generateFileTree(
-  paths: string[],
-  options: ProcessPathOptions
-): Promise<string> {
-  const fileSet = new Set<string>();
-  async function recurse(p: string) {
-    const rel = path.relative(options.baseIgnorePath, p);
-    if (rel && options.mainIg.ignores(rel)) {
-      return;
-    }
-    const name = path.basename(p);
-    if (!options.includeHidden && name.startsWith('.')) {
-      return;
-    }
-    const stats = await fsp.stat(p);
-    if (stats.isDirectory()) {
-      const entries = await fsp.readdir(p, { withFileTypes: true });
-      for (const e of entries) {
-        await recurse(path.join(p, e.name));
-      }
-    } else if (stats.isFile()) {
-      fileSet.add(p);
-    }
-  }
-  for (const p of paths) {
-    await recurse(p);
-  }
-  const rels = Array.from(fileSet)
-    .map((p) => path.relative(options.baseIgnorePath, p))
-    .sort();
-
-  // Build nested tree structure
-  type TreeNode = { [name: string]: TreeNode };
-  const treeRoot: TreeNode = {};
-  for (const relPath of rels) {
-    const parts = relPath.split(path.sep);
-    let current = treeRoot;
-    for (const part of parts) {
-      if (!current[part]) {
-        current[part] = {};
-      }
-      current = current[part];
-    }
-  }
-
-  const lines: string[] = ['.'];
-  function render(node: TreeNode, prefix: string) {
-    const entries = Object.keys(node);
-    entries.forEach((name, index) => {
-      const isLast = index === entries.length - 1;
-      const connector = isLast ? '└── ' : '├── ';
-      lines.push(`${prefix}${connector}${name}`);
-      const childPrefix = prefix + (isLast ? '    ' : '│   ');
-      render(node[name], childPrefix);
-    });
-  }
-  render(treeRoot, '');
-  return lines.join('\n');
-}
 
 /**
  * Processes a path (file or directory) recursively.
