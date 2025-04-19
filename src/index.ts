@@ -34,6 +34,7 @@ interface ProcessPathOptions {
   lineNumbers: boolean;
   mainIg: Ignore; // The ignore instance
   baseIgnorePath: string; // Path relative to which ignore rules apply
+  tree: boolean; // Generate file tree at top
 }
 
 /**
@@ -264,6 +265,11 @@ async function readPathsFromStdin(
         default: false,
         description: 'Use NUL separator for stdin'
       })
+      .option('tree', {
+        type: 'boolean',
+        default: false,
+        description: 'Generate file tree at top'
+      })
       .help()
       .alias('help', 'h')
       .version()
@@ -364,6 +370,10 @@ async function readPathsFromStdin(
     }
 
     // --- Process Paths ---
+    if (options.tree) {
+      const treeStr = await generateFileTree(allPaths, options)
+      writer(treeStr.trimEnd())
+    }
     if (argv.cxml) {
       writer('<documents>');
     }
@@ -390,7 +400,8 @@ async function readPathsFromStdin(
         markdown: argv.markdown ?? false,
         lineNumbers: argv['line-numbers'] ?? false,
         mainIg, // Pass the ignore instance
-        baseIgnorePath // Pass the base path
+        baseIgnorePath, // Pass the base path
+        tree: argv.tree ?? false // Whether to generate file tree
       };
       await processPath(path.resolve(targetPath), options); // Process absolute path
     }
