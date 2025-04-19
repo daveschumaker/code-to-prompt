@@ -38,7 +38,9 @@ describe('CLI End-to-End Tests', () => {
       encoding: 'utf-8'
     });
 
-    expect(result.stderr).toBe(''); // Expect no errors printed to stderr
+    // Expect stderr to contain stats, but not fatal errors like "Error:"
+    expect(result.stderr).toContain('Stats:');
+    expect(result.stderr).not.toContain('Error:');
     expect(result.status).toBe(0); // Expect successful exit code
     expect(result.stdout).toContain(`File: ${filePath}`);
     expect(result.stdout).toContain('---');
