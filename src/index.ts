@@ -136,9 +136,9 @@ async function processPath(
   if (isIgnoredByGitignore) {
     console.error(
       chalk.yellow(
-        `    [Debug] Skipping due to ignore rules: ${baseName} (path: ${
+        `    Skipping due to ignore rules: ${baseName} (path: ${
           relativePath || '<root>'
-        })` // Log adjusted
+        })`
       )
     );
     return;
