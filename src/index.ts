@@ -10,6 +10,7 @@ import path from 'path'; // Node's Path module
 import { minimatch } from 'minimatch'; // Keep for --ignore patterns
 import chalk from 'chalk'; // For terminal colors like click.style
 import ignore, { Ignore } from 'ignore'; // Import the ignore library
+import type { ErrnoException } from './types';
 import {
   addLineNumbers,
   printDefault,
@@ -52,7 +53,7 @@ async function processPath(
   let stats: fs.Stats;
   try {
     stats = await fsp.stat(targetPath);
-  } catch (error: any) {
+  } catch (error: unknown) {
     /* ... error handling ... */ return;
   }
 
@@ -135,8 +136,9 @@ async function processPath(
         options.lineNumbers
       );
       options.stats.foundFiles++;
-    } catch (error: any) {
-      const warningMessage = `Warning: Skipping file ${targetPath} due to read error: ${error.message}`;
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      const warningMessage = `Warning: Skipping file ${targetPath} due to read error: ${errMsg}`;
       console.error(chalk.yellow(warningMessage));
     }
     return; // Done processing the file
@@ -164,9 +166,10 @@ async function processPath(
       options.debug(
         chalk.cyan(`Found ${entries.length} entries in ${targetPath}`)
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       console.error(
-        chalk.red(`Error reading directory ${targetPath}: ${error.message}`)
+        chalk.red(`Error reading directory ${targetPath}: ${errMsg}`)
       );
       return;
     }
@@ -341,9 +344,10 @@ async function readPathsFromStdin(
         await fsp.access(path.dirname(argv.output), fs.constants.W_OK);
         fileStream = fs.createWriteStream(argv.output, { encoding: 'utf-8' });
         writer = (text: string) => fileStream!.write(text + '\n');
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : String(error);
         throw new Error(
-          `Cannot write to output file ${argv.output}: ${error.message}`
+          `Cannot write to output file ${argv.output}: ${msg}`
         );
       }
     }
@@ -388,12 +392,13 @@ async function readPathsFromStdin(
         } else {
           debug(chalk.yellow(`No rules found in ${gitignorePath}.`));
         }
-      } catch (error: any) {
-        if (error.code === 'ENOENT') {
+      } catch (error: unknown) {
+        const err = error as ErrnoException;
+        if (err.code === 'ENOENT') {
           debug(chalk.yellow(`No .gitignore file found at ${baseIgnorePath}.`));
         } else {
           debug(
-            chalk.yellow(`Could not read main .gitignore: ${error.message}`)
+            chalk.yellow(`Could not read main .gitignore: ${err.message}`)
           );
         }
       }
