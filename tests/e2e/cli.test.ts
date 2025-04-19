@@ -173,4 +173,71 @@ describe('CLI End-to-End Tests', () => {
       await fs.rm(externalTargetDir, { recursive: true, force: true });
     }
   });
+
+  it('should generate tree relative to common ancestor when multiple paths outside cwd are given', async () => {
+    // Create a structure outside the main tempTestDir
+    const externalBaseDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'code-to-prompt-external-multi-')
+    );
+    const subDir1 = path.join(externalBaseDir, 'sub1');
+    const subDir2 = path.join(externalBaseDir, 'sub2');
+    const file1Path = path.join(subDir1, 'file1.txt');
+    const file2Path = path.join(subDir2, 'file2.txt');
+
+    try {
+      await fs.mkdir(subDir1);
+      await fs.mkdir(subDir2);
+      await fs.writeFile(file1Path, 'Content file 1');
+      await fs.writeFile(file2Path, 'Content file 2');
+
+      // Run the command from tempTestDir, targeting the two external files/dirs
+      const result = spawnSync(
+        'node',
+        [cliEntryPoint, '--tree', file1Path, subDir2], // Target file and dir
+        {
+          cwd: tempTestDir, // Run from the standard test CWD
+          encoding: 'utf-8'
+        }
+      );
+
+      expect(result.status).toBe(0);
+      expect(result.stderr).toContain('Stats:');
+      expect(result.stderr).not.toContain('Error:');
+
+      // Check that the tree root is the common ancestor directory
+      expect(result.stdout).toContain('Folder structure:');
+      // Use path.dirname to be sure we get the directory containing the files/dirs
+      const expectedRootDir = externalBaseDir;
+      expect(result.stdout).toContain(expectedRootDir + path.sep);
+
+      // Check the tree structure relative to the common ancestor
+      // Note: path.sep is crucial for cross-platform compatibility
+      const expectedTreeStructure = [
+        '.',
+        `├── sub1`,
+        `│   └── file1.txt`,
+        `└── sub2`,
+        `    └── file2.txt`
+      ].join('\n');
+
+      const normalizedStdout = result.stdout.replace(/\r\n/g, '\n');
+      const treeStartIndex = normalizedStdout.indexOf('---\n') + 4;
+      const treeEndIndex = normalizedStdout.indexOf('\n---', treeStartIndex);
+      const actualTree = normalizedStdout.substring(treeStartIndex, treeEndIndex).trim();
+
+      // Normalize path separators in actual tree for comparison if needed (though generateFileTree should use path.sep)
+      expect(actualTree).toBe(expectedTreeStructure);
+
+      // Check that the file contents are also included
+      expect(result.stdout).toContain(`File: ${file1Path}`);
+      expect(result.stdout).toContain('Content file 1');
+      expect(result.stdout).toContain(`File: ${file2Path}`);
+      expect(result.stdout).toContain('Content file 2');
+
+    } finally {
+      // Clean up the external directory structure
+      await fs.rm(externalBaseDir, { recursive: true, force: true });
+    }
+  });
+
 });
