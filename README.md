@@ -3,7 +3,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 A Node.js command-line utility to recursively gather files from specified paths, format their content, and output everything suitable for pasting into Large Language Model (LLM) prompts.
 
-**Motivation:** This tool is heavily inspired by and aims to provide similar functionality to Simon Willison's excellent Python-based [`files-to-prompt`](https://github.com/simonw/files-to-prompt) utility, but implemented in a Node.js/TypeScript environment. It's designed for developers who might be more comfortable extending or integrating within a JavaScript ecosystem.
+## Motivation
+
+This tool is heavily inspired by and aims to provide similar functionality to Simon Willison's excellent Python-based [`files-to-prompt`](https://github.com/simonw/files-to-prompt) utility, but implemented in a Node.js/TypeScript environment. It's designed for developers who might be more comfortable extending or integrating within a JavaScript ecosystem.
 
 ## Features
 
@@ -27,7 +29,7 @@ A Node.js command-line utility to recursively gather files from specified paths,
 
 As this tool is not intended for public npm release currently, you can install and run it locally from the cloned repository.
 
-**Method 1: Global Link (Recommended for easy access)**
+### Method 1: Global Link (Recommended for easy access)
 
 This method makes the `code-to-prompt` command available anywhere in your terminal.
 
@@ -60,12 +62,15 @@ This method makes the `code-to-prompt` command available anywhere in your termin
 
 Now you can run `code-to-prompt` from any directory.
 
-- **To Update:** Navigate back to the `code-to-prompt` directory, pull the latest changes (`git pull`), and run `npm install` followed by `npm run build` (if needed) and `npm link` again.
-- **To Uninstall:** Navigate back to the `code-to-prompt` directory and run `npm unlink`.
+#### To Update:
+Navigate back to the `code-to-prompt` directory, pull the latest changes (`git pull`), and run `npm install` followed by `npm run build` (if needed) and `npm link` again.
 
-**Method 2: Run Directly from Project Directory**
+#### To Uninstall:
+Navigate back to the `code-to-prompt` directory and run `npm unlink`.
 
-1.  **Clone and build** as described in steps 1-3 above.
+### Method 2: Run Directly from Project Directory
+
+1.  Clone and build as described in steps 1-3 above.
 2.  **Run using `node`:**
     ```bash
     node /path/to/code-to-prompt/dist/index.js [options] [paths...]
@@ -118,36 +123,46 @@ find ./src -name "*.ts" -print0 | code-to-prompt -0
 
 ### Examples
 
-1.  **Process all non-ignored files in the current directory:**
-    ```bash
-    code-to-prompt .
-    ```
-2. Process only TypeScript and JavaScript files in the src directory:code-to-prompt -e .ts -e .js ./src
-3.  **Process files in `src` and `tests`, ignoring `.log` files and `node_modules` (via `.gitignore`), outputting as Markdown to a file:**
-    ```bash
-    # Assumes .gitignore includes node_modules/ and *.log
-    code-to-prompt ./src ./tests --markdown -o prompt.md
-    ```
-4.  **Explicitly ignore build artifacts and test snapshots:**
-    ```bash
-    code-to-prompt . --ignore "dist/**" --ignore "**/*.snap"
-    ```
-5.  **Process specific files and add line numbers:**
-    ```bash
-    code-to-prompt src/index.ts src/lib/printers.ts --line-numbers
-    ```
-6.  **Generate a file tree overview for the `src` directory:**
-    ```bash
-    code-to-prompt --tree ./src
-    ```
-7.  **Combine `find` with `code-to-prompt` using null separator:**
-    ```bash
-    find ./src -type f \( -name "*.ts" -o -name "*.json" \) -print0 | code-to-prompt -0 --markdown
-    ```
-8.  **Output in Claude XML format, including hidden files:**
-    ```bash
-    code-to-prompt --cxml --include-hidden .
-    ```
+#### 1. Process all non-ignored files in the current directory:
+```bash
+code-to-prompt .
+```
+
+#### 2. Process only TypeScript and JavaScript files in the src directory:
+```bash
+code-to-prompt -e .ts -e .js ./src
+```
+
+#### 3. Process files in `src` and `tests`, ignoring `.log` files and `node_modules` (via `.gitignore`), outputting as Markdown to a file:
+```bash
+# Assumes .gitignore includes node_modules/ and *.log
+code-to-prompt ./src ./tests --markdown -o prompt.md
+```
+
+#### 4. Explicitly ignore build artifacts and test snapshots:
+```bash
+code-to-prompt . --ignore "dist/**" --ignore "**/*.snap"
+```
+
+#### 5. Process specific files and add line numbers:
+```bash
+code-to-prompt src/index.ts src/lib/printers.ts --line-numbers
+```
+
+#### 6. Generate a file tree overview for the `src` directory:
+```bash
+code-to-prompt --tree ./src
+```
+
+#### 7. Combine `find` with `code-to-prompt` using null separator:
+```bash
+find ./src -type f \( -name "*.ts" -o -name "*.json" \) -print0 | code-to-prompt -0 --markdown
+```
+
+#### 8. Output in Claude XML format, including hidden files:
+```bash
+code-to-prompt --cxml --include-hidden .
+```
 
 ## Development
 
