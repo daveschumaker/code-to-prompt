@@ -411,8 +411,15 @@ async function readPathsFromStdin(
 
     // --- Process Paths ---
     if (argv.tree) {
-      const treeStr = await generateFileTree(allPaths, { baseIgnorePath } as ProcessPathOptions);
-      writer(treeStr.trimEnd())
+      const treeStr = await generateFileTree(
+        allPaths,
+        {
+          baseIgnorePath,
+          mainIg,
+          includeHidden: argv['include-hidden'] ?? false
+        } as ProcessPathOptions
+      );
+      writer(treeStr.trimEnd());
     }
     if (argv.cxml) {
       writer('<documents>');
