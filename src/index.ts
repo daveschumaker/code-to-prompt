@@ -170,9 +170,9 @@ async function processPath(
         );
         return;
       }
-      console.error(chalk.green(`File passed extension filter: ${baseName}`));
+      options.debug(chalk.green(`File passed extension filter: ${baseName}`));
     } else {
-      console.error(chalk.green(`File added (no ext filter): ${baseName}`));
+      options.debug(chalk.green(`File added (no ext filter): ${baseName}`));
     }
 
     // Read and Print (if not skipped by filters above)
@@ -418,13 +418,13 @@ async function readPathsFromStdin(
             chalk.yellow(`No .gitignore file found at ${baseIgnorePath}.`)
           );
         } else {
-          console.error(
+          debug(
             chalk.yellow(`Could not read main .gitignore: ${error.message}`)
           );
         }
       }
     } else {
-      console.error(
+      debug(
         chalk.yellow(`Ignoring .gitignore file due to --ignore-gitignore flag.`)
       );
     }
