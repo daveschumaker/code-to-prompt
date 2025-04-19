@@ -124,4 +124,53 @@ describe('CLI End-to-End Tests', () => {
     expect(result.stdout).toContain('&lt;&amp;&gt;');
     expect(result.stdout.trim().endsWith('</documents>')).toBe(true);
   });
+
+  it('should generate tree relative to target path when target is outside cwd', async () => {
+    // Create a target directory *outside* the main tempTestDir
+    const externalTargetDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'code-to-prompt-external-target-')
+    );
+    const targetFileName = 'external_sample.txt';
+    const targetFilePath = path.join(externalTargetDir, targetFileName);
+
+    try {
+      await fs.writeFile(targetFilePath, 'External content');
+
+      // Run the command from tempTestDir, but target externalTargetDir
+      const result = spawnSync(
+        'node',
+        [cliEntryPoint, '--tree', externalTargetDir], // Target the external dir
+        {
+          cwd: tempTestDir, // Run from the standard test CWD
+          encoding: 'utf-8'
+        }
+      );
+
+      expect(result.status).toBe(0);
+      expect(result.stderr).toContain('Stats:');
+      expect(result.stderr).not.toContain('Error:');
+
+      // Check that the tree root is the external target directory
+      expect(result.stdout).toContain('Folder structure:');
+      expect(result.stdout).toContain(externalTargetDir + path.sep); // Check the correct root path is printed
+
+      // Check the tree structure relative to the external target directory
+      const expectedTreeStructure = `.\n└── ${targetFileName}`;
+      // Normalize line endings just in case
+      const normalizedStdout = result.stdout.replace(/\r\n/g, '\n');
+      const treeStartIndex = normalizedStdout.indexOf('---\n') + 4; // Find start of tree after first '---'
+      const treeEndIndex = normalizedStdout.indexOf('\n---', treeStartIndex); // Find end of tree before second '---'
+      const actualTree = normalizedStdout.substring(treeStartIndex, treeEndIndex).trim();
+
+      expect(actualTree).toBe(expectedTreeStructure);
+
+      // Check that the file content is also included after the tree
+      expect(result.stdout).toContain(`File: ${targetFilePath}`);
+      expect(result.stdout).toContain('External content');
+
+    } finally {
+      // Clean up the external directory
+      await fs.rm(externalTargetDir, { recursive: true, force: true });
+    }
+  });
 });
