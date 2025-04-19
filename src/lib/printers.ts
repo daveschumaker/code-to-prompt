@@ -74,7 +74,7 @@ function printAsMarkdown(
   lineNumbers: boolean
 ): void {
   const extension = path.extname(filePath).substring(1);
-  const lang = EXT_TO_LANG[extension] || '';
+  const lang = extension;
   let backticks = '```';
   while (content.includes(backticks)) {
     backticks += '`';
