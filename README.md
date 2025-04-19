@@ -90,8 +90,8 @@ The basic command structure is:
 code-to-prompt [options] [paths...]
 ```
 
--   `[paths...]`: One or more file or directory paths to process. If omitted, paths are read from standard input.
--   `[options]`: Flags to control filtering, formatting, and output (see below).
+- `[paths...]`: One or more file or directory paths to process. If omitted, paths are read from standard input.
+- `[options]`: Flags to control filtering, formatting, and output (see below).
 
 You can also pipe paths into the tool, for example using `find` or `fd`:
 
