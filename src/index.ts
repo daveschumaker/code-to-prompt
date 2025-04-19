@@ -5,7 +5,7 @@
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import fs from 'fs'; // Node's File System module
-import fsp from 'fs/promises'; // Promises API for async operations
+import fsp, { stat } from 'fs/promises'; // Promises API for async operations
 import path from 'path'; // Node's Path module
 import { minimatch } from 'minimatch'; // Keep for --ignore patterns
 import chalk from 'chalk'; // For terminal colors like click.style
@@ -398,15 +398,34 @@ async function readPathsFromStdin(
     }
 
     // --- Process Paths ---
+    const absolutePaths = allPaths.map(p => path.resolve(p)); // Resolve all paths first
+
     if (argv.tree) {
+      let treeDisplayRoot = process.cwd(); // Default
+      if (absolutePaths.length > 0) {
+          const firstPath = absolutePaths[0];
+          try {
+              const stats = await fsp.stat(firstPath);
+              treeDisplayRoot = stats.isDirectory() ? firstPath : path.dirname(firstPath);
+          } catch (err: MaybeError) {
+              // If stat fails on the first path, use its dirname as a fallback root
+              console.error(chalk.yellow(`Warning: Could not stat ${firstPath}, using its directory for tree root.`));
+              treeDisplayRoot = path.dirname(firstPath);
+          }
+          // Note: For multiple paths, using the first path's dir is a heuristic.
+          // A true common ancestor calculation could be added here if needed.
+      }
+
       writer('Folder structure:');
-      writer(baseIgnorePath + path.sep);
+      writer(treeDisplayRoot + path.sep); // Use the calculated display root
       writer('---');
-      const treeStr = await generateFileTree(allPaths, {
-        baseIgnorePath,
-        mainIg,
-        includeHidden: argv['include-hidden'] ?? false
-      } as ProcessPathOptions);
+      // Pass the calculated treeDisplayRoot as baseIgnorePath *for tree generation only*
+      const treeOptions: FileTreeOptions = {
+          baseIgnorePath: treeDisplayRoot, // Use the correct root for tree display
+          mainIg, // Still use the main ignore instance from cwd
+          includeHidden: argv['include-hidden'] ?? false
+      };
+      const treeStr = await generateFileTree(absolutePaths, treeOptions);
       writer(treeStr.trimEnd());
       writer('---');
       writer('');
@@ -415,10 +434,13 @@ async function readPathsFromStdin(
       writer('<documents>');
     }
 
-    for (const targetPath of allPaths) {
+    // Use the resolved absolute paths for processing
+    for (const targetPath of absolutePaths) {
       try {
+        // Access check might be redundant if stat is done inside processPath anyway,
+        // but keep it as a quick initial check.
         await fsp.access(targetPath);
-      } catch (error: any) {
+      } catch (error: MaybeError) {
         console.error(
           chalk.red(
             `Error: Input path "${targetPath}" not found or inaccessible.`
@@ -442,7 +464,8 @@ async function readPathsFromStdin(
         debug: debug,
         stats: stats
       };
-      await processPath(path.resolve(targetPath), options); // Process absolute path
+      // targetPath is already absolute here
+      await processPath(targetPath, options);
     }
 
     if (argv.cxml) {
