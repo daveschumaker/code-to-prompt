@@ -20,7 +20,6 @@ import {
   globalIndex
 } from './lib/printers';
 
-
 // --- Core Logic ---
 
 // Updated Options interface
@@ -275,8 +274,6 @@ async function readPathsFromStdin(
         'strip-aliased': true
       })
       .parseAsync();
-
-    globalIndex = 1;
 
     // --- Prepare Arguments and Options ---
     const cliPaths = (argv._ as string[]) || [];
