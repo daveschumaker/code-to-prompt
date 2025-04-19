@@ -85,5 +85,41 @@ describe('CLI End-to-End Tests', () => {
     // --- ---
   });
 
-  // Add more tests for different flags, edge cases, stdin, output files etc.
+  // Additional flag combinations and modes
+  it('should output debug logs when verbose is used', async () => {
+    const filePath = path.join(tempTestDir, 'sample.txt');
+    await fs.writeFile(filePath, 'test');
+    const result = spawnSync('node', [cliEntryPoint, '--verbose', filePath], {
+      cwd: tempTestDir,
+      encoding: 'utf-8'
+    });
+    expect(result.status).toBe(0);
+    expect(result.stderr).toContain('Processing path:');
+  });
+
+  it('should prepend tree and add line numbers when both --tree and --line-numbers are used', async () => {
+    const filePath = path.join(tempTestDir, 'sample.txt');
+    await fs.writeFile(filePath, 'a\nb');
+    const result = spawnSync('node', [cliEntryPoint, '--tree', '--line-numbers', filePath], {
+      cwd: tempTestDir,
+      encoding: 'utf-8'
+    });
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('Folder structure:');
+    expect(result.stdout).toContain('1  a');
+    expect(result.stdout).toContain('2  b');
+  });
+
+  it('should wrap output in XML when --cxml is used', async () => {
+    const filePath = path.join(tempTestDir, 'sample.txt');
+    await fs.writeFile(filePath, '<&>');
+    const result = spawnSync('node', [cliEntryPoint, '--cxml', filePath], {
+      cwd: tempTestDir,
+      encoding: 'utf-8'
+    });
+    expect(result.status).toBe(0);
+    expect(result.stdout.trim().startsWith('<documents>')).toBe(true);
+    expect(result.stdout).toContain('&lt;&amp;&gt;');
+    expect(result.stdout.trim().endsWith('</documents>')).toBe(true);
+  });
 });

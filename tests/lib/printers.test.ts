@@ -1,5 +1,12 @@
 // tests/lib/printers.test.ts
-import { addLineNumbers } from '../../src/lib/printers'; // Adjust path as needed
+import {
+  addLineNumbers,
+  printDefault,
+  printAsXml,
+  printAsMarkdown,
+  printPath,
+  globalIndex
+} from '../../src/lib/printers';
 
 describe('Printers Module', () => {
   describe('addLineNumbers', () => {
@@ -28,7 +35,51 @@ describe('Printers Module', () => {
       expect(addLineNumbers(content)).toBe(expected);
     });
 
-    // Add more tests for edge cases if needed
+    // Tests for other printer functions
+    describe('printDefault', () => {
+      it('prints default with no line numbers', () => {
+        const output: string[] = [];
+        const writer = (text: string) => output.push(text);
+        printDefault(writer, 'file.ts', 'content', false);
+        expect(output).toEqual(['File: file.ts', '---', 'content', '---', '']);
+      });
+
+      it('prints default with line numbers', () => {
+        const output: string[] = [];
+        const writer = (text: string) => output.push(text);
+        printDefault(writer, 'file.ts', 'line1\nline2', true);
+        expect(output).toEqual(['File: file.ts', '---', '1  line1\n2  line2', '---', '']);
+      });
+    });
+
+    describe('printAsXml', () => {
+      beforeEach(() => { globalIndex = 1; });
+      it('escapes xml chars and increments index', () => {
+        const output: string[] = [];
+        const writer = (text: string) => output.push(text);
+        printAsXml(writer, 'file.ts', '<&>', false);
+        expect(output).toContain('<document index="1">');
+        expect(output).toContain('&lt;&amp;&gt;');
+      });
+    });
+
+    describe('printAsMarkdown', () => {
+      it('prints fenced code blocks with language', () => {
+        const output: string[] = [];
+        const writer = (text: string) => output.push(text);
+        printAsMarkdown(writer, 'file.ts', 'code()', false);
+        expect(output).toEqual(['file.ts', '```ts', 'code()', '```', '']);
+      });
+    });
+
+    describe('printPath', () => {
+      it('dispatches to default printer', () => {
+        const output: string[] = [];
+        const writer = (text: string) => output.push(text);
+        printPath(writer, 'file.ts', 'x', false, false, false);
+        expect(output[0]).toBe('File: file.ts');
+      });
+    });
   });
 
   // Add describe blocks for other functions in printers.ts (printDefault, etc.)

@@ -41,7 +41,7 @@ interface ProcessPathOptions {
 /**
  * Generates a nested file‐tree listing for the given paths.
  */
-async function generateFileTree(
+export async function generateFileTree(
   paths: string[],
   options: ProcessPathOptions
 ): Promise<string> {
