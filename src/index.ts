@@ -12,7 +12,7 @@ import chalk from 'chalk'; // For terminal colors like click.style
 import ignore, { Ignore } from 'ignore'; // Import the ignore library
 import type { ErrnoException, MaybeError } from './types';
 import { printPath, Writer } from './lib/printers';
-import { generateFileTree } from './lib/fileTree';
+import { generateFileTree, FileTreeOptions } from './lib/fileTree'; // Import FileTreeOptions
 
 // --- Core Logic ---
 
