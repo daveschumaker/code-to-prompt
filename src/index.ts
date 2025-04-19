@@ -107,7 +107,7 @@ async function processPath(
   targetPath: string,
   options: ProcessPathOptions
 ): Promise<void> {
-  console.error(chalk.cyan(`[Debug] Processing path: ${targetPath}`));
+  debug(chalk.cyan(`[Debug] Processing path: ${targetPath}`));
   let stats: fs.Stats;
   try {
     stats = await fsp.stat(targetPath);
@@ -333,6 +333,12 @@ async function readPathsFromStdin(
         default: false,
         description: 'Generate file tree at top'
       })
+      .option('verbose', {
+        alias: 'V',
+        type: 'boolean',
+        default: false,
+        description: 'Enable verbose debug logging'
+      })
       .help()
       .alias('help', 'h')
       .version()
@@ -343,6 +349,10 @@ async function readPathsFromStdin(
         'strip-aliased': true
       })
       .parseAsync();
+
+    // Enable conditional debug logging
+    const verbose = argv.verbose ?? false;
+    const debug = (msg: string) => { if (verbose) console.error(msg); };
 
     // --- Prepare Arguments and Options ---
     const cliPaths = (argv._ as string[]) || [];
