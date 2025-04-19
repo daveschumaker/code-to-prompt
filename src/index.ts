@@ -10,27 +10,9 @@ import path from 'path'; // Node's Path module
 import { minimatch } from 'minimatch'; // Keep for --ignore patterns
 import chalk from 'chalk'; // For terminal colors like click.style
 import ignore, { Ignore } from 'ignore'; // Import the ignore library
+import { EXT_TO_LANG } from './lib/processor';
 
 // --- Constants and Global State ---
-
-const EXT_TO_LANG: { [key: string]: string } = {
-  py: 'python',
-  c: 'c',
-  cpp: 'cpp',
-  java: 'java',
-  js: 'javascript',
-  ts: 'typescript',
-  html: 'html',
-  css: 'css',
-  xml: 'xml',
-  json: 'json',
-  yaml: 'yaml',
-  yml: 'yaml',
-  sh: 'bash',
-  rb: 'ruby'
-  // Add other extensions as needed
-};
-
 let globalIndex = 1;
 type Writer = (text: string) => void;
 
