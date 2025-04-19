@@ -123,7 +123,7 @@ async function processPath(
 
   // Filter Hidden before checking ignore rules
   if (!options.includeHidden && baseName.startsWith('.')) {
-    console.error(chalk.yellow(`    Skipping hidden: ${baseName}`));
+    options.debug(chalk.yellow(`    Skipping hidden: ${baseName}`));
     return;
   }
 
@@ -134,7 +134,7 @@ async function processPath(
   }
   // Now use the result of the check
   if (isIgnoredByGitignore) {
-    console.error(
+    options.debug(
       chalk.yellow(
         `    Skipping due to ignore rules: ${baseName} (path: ${
           relativePath || '<root>'
@@ -146,7 +146,7 @@ async function processPath(
 
   // --- Process Single File ---
   if (stats.isFile()) {
-    console.error(chalk.cyan(`Path is a file. Checking filters...`));
+    options.debug(chalk.cyan(`Path is a file. Checking filters...`));
 
     // Filter custom ignore patterns (--ignore) applied to files
     if (
@@ -154,7 +154,7 @@ async function processPath(
         minimatch(baseName, pattern, { dot: true })
       )
     ) {
-      console.error(
+      options.debug(
         chalk.yellow(`Skipping file due to --ignore pattern: ${baseName}`)
       );
       return;
@@ -165,7 +165,7 @@ async function processPath(
       const fileExt = path.extname(targetPath);
       const matches = options.extensions.some((ext) => fileExt === ext);
       if (!matches) {
-        console.error(
+        options.debug(
           chalk.yellow(`Skipping file (ext mismatch): ${baseName}`)
         );
         return;
@@ -177,9 +177,9 @@ async function processPath(
 
     // Read and Print (if not skipped by filters above)
     try {
-      console.error(chalk.cyan(`Reading file: ${targetPath}`));
+      options.debug(chalk.cyan(`Reading file: ${targetPath}`));
       const content = await fsp.readFile(targetPath, 'utf-8');
-      console.error(chalk.cyan(`Printing file: ${targetPath}`));
+      options.debug(chalk.cyan(`Printing file: ${targetPath}`));
       printPath(
         options.writer,
         targetPath,
@@ -212,11 +212,11 @@ async function processPath(
       return; // Skip directory if it matches an ignore pattern
     }
 
-    console.error(chalk.cyan(`Path is a directory. Reading entries...`));
+    options.debug(chalk.cyan(`Path is a directory. Reading entries...`));
     let entries: fs.Dirent[];
     try {
       entries = await fsp.readdir(targetPath, { withFileTypes: true });
-      console.error(
+      options.debug(
         chalk.cyan(`Found ${entries.length} entries in ${targetPath}`)
       );
     } catch (error: any) {
@@ -403,18 +403,18 @@ async function readPathsFromStdin(
           .map((line) => line.trim())
           .filter((line) => line && !line.startsWith('#'));
         if (rules.length > 0) {
-          console.error(
+          debug(
             chalk.blue(
               `Initializing ignore patterns from ${gitignorePath} with ${rules.length} rules.`
             )
           );
           mainIg = ignore().add(rules);
         } else {
-          console.error(chalk.yellow(`No rules found in ${gitignorePath}.`));
+          debug(chalk.yellow(`No rules found in ${gitignorePath}.`));
         }
       } catch (error: any) {
         if (error.code === 'ENOENT') {
-          console.error(
+          debug(
             chalk.yellow(`No .gitignore file found at ${baseIgnorePath}.`)
           );
         } else {
