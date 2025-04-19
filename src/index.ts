@@ -11,15 +11,7 @@ import { minimatch } from 'minimatch'; // Keep for --ignore patterns
 import chalk from 'chalk'; // For terminal colors like click.style
 import ignore, { Ignore } from 'ignore'; // Import the ignore library
 import type { ErrnoException, MaybeError } from './types';
-import {
-  addLineNumbers,
-  printDefault,
-  printAsXml,
-  printAsMarkdown,
-  printPath,
-  Writer,
-  globalIndex
-} from './lib/printers';
+import { printPath, Writer } from './lib/printers';
 import { generateFileTree } from './lib/fileTree';
 
 // --- Core Logic ---
