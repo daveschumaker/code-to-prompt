@@ -357,6 +357,17 @@ async function readPathsFromStdin(
     };
     const stats = { foundFiles: 0, skippedFiles: 0 };
 
+    /**
+     * Converts a byte count into a human‐readable string.
+     */
+    function formatBytes(bytes: number): string {
+      if (bytes < 1024) return `${bytes} B`;
+      const kb = bytes / 1024;
+      if (kb < 1024) return `${kb.toFixed(2)} KB`;
+      const mb = kb / 1024;
+      return `${mb.toFixed(2)} MB`;
+    }
+
     // --- Prepare Arguments and Options ---
     const cliPaths = (argv._ as string[]) || [];
     const stdinPaths = await readPathsFromStdin(argv.null ?? false);
@@ -520,7 +531,7 @@ async function readPathsFromStdin(
     if (argv.output) {
       try {
         const { size } = await fsp.stat(argv.output);
-        console.error(`Output file size: ${size} bytes`);
+        console.error(`Output file size: ${formatBytes(size)}`);
       } catch {}
     }
     console.error(`Generation time: ${((endTime - startTime) / 1000).toFixed(2)}s`);
