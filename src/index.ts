@@ -46,6 +46,14 @@ async function generateFileTree(
 ): Promise<string> {
   const fileSet = new Set<string>();
   async function recurse(p: string) {
+    const rel = path.relative(options.baseIgnorePath, p);
+    if (rel && options.mainIg.ignores(rel)) {
+      return;
+    }
+    const name = path.basename(p);
+    if (!options.includeHidden && name.startsWith('.')) {
+      return;
+    }
     const stats = await fsp.stat(p);
     if (stats.isDirectory()) {
       const entries = await fsp.readdir(p, { withFileTypes: true });
