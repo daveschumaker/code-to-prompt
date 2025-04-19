@@ -12,10 +12,15 @@ describe('CLI End-to-End Tests', () => {
 
   beforeEach(async () => {
     // Create a temporary directory for the test run
-    tempTestDir = await fs.mkdtemp(path.join(os.tmpdir(), 'code-to-prompt-test-run-'));
+    tempTestDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'code-to-prompt-test-run-')
+    );
     // Create sample.txt and .gitignore in the temp directory
     await fs.writeFile(path.join(tempTestDir, 'sample.txt'), '');
-    await fs.writeFile(path.join(tempTestDir, '.gitignore'), '*.log\nnode_modules/');
+    await fs.writeFile(
+      path.join(tempTestDir, '.gitignore'),
+      '*.log\nnode_modules/'
+    );
   });
 
   afterEach(async () => {
@@ -56,10 +61,16 @@ describe('CLI End-to-End Tests', () => {
   });
 
   it('should respect .gitignore', async () => {
+    // Make sure the test function is async
     const ignoredFilePath = path.join(tempTestDir, 'test.log');
     const includedFilePath = path.join(tempTestDir, 'test.txt');
     await fs.writeFile(ignoredFilePath, 'This should be ignored');
     await fs.writeFile(includedFilePath, 'This should be included');
+
+    // --- Get the real, resolved paths ---
+    const realIncludedPath = await fs.realpath(includedFilePath);
+    const realIgnoredPath = await fs.realpath(ignoredFilePath);
+    // --- ---
 
     // Run on the directory
     const result = spawnSync('node', [cliEntryPoint, '.'], {
@@ -68,8 +79,10 @@ describe('CLI End-to-End Tests', () => {
     });
 
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain(`File: ${includedFilePath}`);
-    expect(result.stdout).not.toContain(`File: ${ignoredFilePath}`);
+    // --- Use the resolved paths in assertions ---
+    expect(result.stdout).toContain(`File: ${realIncludedPath}`); // Use real path here
+    expect(result.stdout).not.toContain(`File: ${realIgnoredPath}`); // Use real path here too
+    // --- ---
   });
 
   // Add more tests for different flags, edge cases, stdin, output files etc.

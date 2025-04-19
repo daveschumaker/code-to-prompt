@@ -209,9 +209,7 @@ async function processPath(
       )
     ) {
       options.debug(
-        chalk.yellow(
-          `Skipping directory due to --ignore pattern: ${baseName}`
-        )
+        chalk.yellow(`Skipping directory due to --ignore pattern: ${baseName}`)
       );
       return; // Skip directory if it matches an ignore pattern
     }
@@ -436,9 +434,7 @@ async function readPathsFromStdin(
         }
       } catch (error: any) {
         if (error.code === 'ENOENT') {
-          debug(
-            chalk.yellow(`No .gitignore file found at ${baseIgnorePath}.`)
-          );
+          debug(chalk.yellow(`No .gitignore file found at ${baseIgnorePath}.`));
         } else {
           debug(
             chalk.yellow(`Could not read main .gitignore: ${error.message}`)
