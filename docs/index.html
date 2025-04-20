@@ -380,10 +380,18 @@
         z-index: 100;
         box-shadow: 0 2px 8px var(--shadow);
         transition: background-color 0.3s;
+        color: var(--text);
       }
 
       .theme-toggle:hover {
         background-color: var(--background-alt);
+      }
+
+      /* Ensure the theme toggle is visible in dark mode */
+      .dark-theme .theme-toggle {
+        background-color: var(--background-alt);
+        color: var(--text);
+        border-color: var(--primary);
       }
 
       .copy-button {
@@ -696,7 +704,7 @@
         <div class="card">
           <h2 class="section-title">Basic Usage</h2>
           <pre><code>code-to-prompt [options] [paths...]</code><button class="copy-button" data-copy="code-to-prompt [options] [paths...]"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
-          
+
           <h3>Options Table</h3>
 
           <div class="table-wrapper">
@@ -805,32 +813,32 @@
           </div>
 
           <h3>Detailed Examples</h3>
-          
+
           <h4>1. Process all non-ignored files in the current directory</h4>
           <pre><code>code-to-prompt .</code><button class="copy-button" data-copy="code-to-prompt ."><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
-          
+
           <h4>2. Process only TypeScript and JavaScript files in the src directory</h4>
           <pre><code>code-to-prompt -e .ts -e .js ./src</code><button class="copy-button" data-copy="code-to-prompt -e .ts -e .js ./src"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
-          
+
           <h4>3. Process files in src and tests, ignoring .log files and node_modules, outputting as Markdown</h4>
           <pre><code># Assumes .gitignore includes node_modules/ and *.log
 code-to-prompt ./src ./tests --markdown -o prompt.md</code><button class="copy-button" data-copy="code-to-prompt ./src ./tests --markdown -o prompt.md"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
-          
+
           <h4>4. Explicitly ignore build artifacts and test snapshots</h4>
           <pre><code>code-to-prompt . --ignore "dist/**" --ignore "**/*.snap"</code><button class="copy-button" data-copy="code-to-prompt . --ignore \"dist/**\" --ignore \"**/*.snap\""><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
-          
+
           <h4>5. Process specific files and add line numbers</h4>
           <pre><code>code-to-prompt src/index.ts src/lib/printers.ts --line-numbers</code><button class="copy-button" data-copy="code-to-prompt src/index.ts src/lib/printers.ts --line-numbers"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
-          
+
           <h4>6. Generate a file tree overview for the src directory</h4>
           <pre><code>code-to-prompt --tree ./src</code><button class="copy-button" data-copy="code-to-prompt --tree ./src"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
-          
+
           <h4>7. Output in Claude XML format, including hidden files</h4>
           <pre><code>code-to-prompt --cxml --include-hidden .</code><button class="copy-button" data-copy="code-to-prompt --cxml --include-hidden ."><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
-          
+
           <h4>8. Combine find with code-to-prompt using null separator</h4>
           <pre><code>find ./src -type f \( -name "*.ts" -o -name "*.json" \) -print0 | code-to-prompt -0 --markdown</code><button class="copy-button" data-copy="find ./src -type f \( -name \"*.ts\" -o -name \"*.json\" \) -print0 | code-to-prompt -0 --markdown"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
-          
+
           <h4>9. Multi-line configuration for complex commands</h4>
           <pre><code>code-to-prompt \
   --markdown \
@@ -932,10 +940,12 @@ code-to-prompt ./src ./tests --markdown -o prompt.md</code><button class="copy-b
         // Function to toggle between sun and moon icons
         const updateThemeIcon = (isDark) => {
           if (isDark) {
+            // Moon icon (for dark mode) - filled version instead of outline for better visibility
             themeIcon.innerHTML = `
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
           `;
           } else {
+            // Sun icon (for light mode)
             themeIcon.innerHTML = `
             <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M12 2V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
