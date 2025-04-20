@@ -1,76 +1,826 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>code-to-prompt</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; color: #333; background: #f9f9f9; }
-    header { background: #4a90e2; color: white; padding: 2rem 1rem; text-align: center; }
-    header h1 { margin: 0.2rem 0; font-size: 2.5rem; }
-    header p { margin: 0.5rem 0 1.5rem; font-size: 1.1rem; }
-    header a { margin: 0 0.5rem; display: inline-block; }
-    main { max-width: 800px; margin: 2rem auto; padding: 0 1rem; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-    section { margin-bottom: 2rem; }
-    section h2 { border-bottom: 2px solid #eee; padding-bottom: 0.3rem; }
-    pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
-    code { font-family: SFMono-Regular, Consolas, monospace; }
-    footer { text-align: center; padding: 1rem 0; font-size: 0.9rem; color: #666; }
-    a { color: #4a90e2; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>code-to-prompt</h1>
-    <p>A CLI tool to gather and format files for LLM prompts</p>
-    <a href="https://www.npmjs.com/package/code-to-prompt"><img src="https://img.shields.io/npm/v/code-to-prompt.svg" alt="npm version"></a>
-    <a href="https://github.com/your-username/code-to-prompt"><img src="https://img.shields.io/github/license/your-username/code-to-prompt.svg" alt="MIT License"></a>
-  </header>
-  <main>
-    <section id="features">
-      <h2>Features</h2>
-      <ul>
-        <li>Recursively scan directories and gather files</li>
-        <li>Respects <code>.gitignore</code> and custom ignore patterns</li>
-        <li>Filter by extension, include hidden files, add line numbers</li>
-        <li>Output formats: Plain text, Markdown, Claude‑XML</li>
-        <li>Optional file‑tree overview</li>
-      </ul>
-    </section>
-    <section id="installation">
-      <h2>Installation</h2>
-      <pre><code>npm install -g code-to-prompt</code></pre>
-    </section>
-    <section id="usage">
-      <h2>Usage</h2>
-      <pre><code>code-to-prompt [options] [paths...]</code></pre>
-      <p>Examples:</p>
-      <pre><code>// Process current directory
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Code-to-prompt: A CLI tool to gather and format files for LLM prompts"
+    />
+    <title>code-to-prompt</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <style>
+      :root {
+        --primary: #4361ee;
+        --primary-dark: #3a56d4;
+        --text: #333333;
+        --text-secondary: #666666;
+        --background: #ffffff;
+        --background-alt: #f8f9fa;
+        --border: #e0e0e0;
+        --code-bg: #f6f8fa;
+        --code-border: #e1e4e8;
+        --shadow: rgba(0, 0, 0, 0.05);
+        --link: #4361ee;
+        --link-hover: #3a56d4;
+        --success: #4ade80;
+        --font:
+          'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
+      }
+
+      /* Dark theme variables */
+      .dark-theme {
+        --primary: #6366f1;
+        --primary-dark: #818cf8;
+        --text: #e2e8f0;
+        --text-secondary: #94a3b8;
+        --background: #0f172a;
+        --background-alt: #1e293b;
+        --border: #334155;
+        --code-bg: #1e293b;
+        --code-border: #334155;
+        --shadow: rgba(0, 0, 0, 0.2);
+        --link: #818cf8;
+        --link-hover: #a5b4fc;
+        --success: #22c55e;
+      }
+
+      /* System preference detection */
+      @media (prefers-color-scheme: dark) {
+        body:not(.light-theme):not(.dark-theme) {
+          --primary: #6366f1;
+          --primary-dark: #818cf8;
+          --text: #e2e8f0;
+          --text-secondary: #94a3b8;
+          --background: #0f172a;
+          --background-alt: #1e293b;
+          --border: #334155;
+          --code-bg: #1e293b;
+          --code-border: #334155;
+          --shadow: rgba(0, 0, 0, 0.2);
+          --link: #818cf8;
+          --link-hover: #a5b4fc;
+          --success: #22c55e;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: var(--font);
+        background-color: var(--background);
+        color: var(--text);
+        line-height: 1.6;
+        transition:
+          background-color 0.3s,
+          color 0.3s;
+      }
+
+      header {
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-dark) 100%
+        );
+        color: white;
+        padding: 3rem 1rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,0.05)' fill-rule='evenodd'/%3E%3C/svg%3E");
+        opacity: 0.3;
+        z-index: 0;
+      }
+
+      .header-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      header h1 {
+        margin: 0.2rem 0;
+        font-size: 3rem;
+        font-weight: 700;
+      }
+
+      header p {
+        margin: 0.5rem 0 1.5rem;
+        font-size: 1.25rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        opacity: 0.9;
+      }
+
+      .badges {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+
+      .badge {
+        opacity: 0.9;
+        transition: opacity 0.2s;
+      }
+
+      .badge:hover {
+        opacity: 1;
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+      }
+
+      .main-content {
+        padding: 3rem 0;
+      }
+
+      .cta-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+      }
+
+      .cta-button {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        gap: 0.5rem;
+        border: 1px solid transparent;
+      }
+
+      /* Primary button */
+      .cta-button.primary {
+        background-color: var(--primary);
+        color: white;
+      }
+
+      .cta-button.primary:hover {
+        background-color: var(--primary-dark);
+      }
+
+      .cta-button.primary svg {
+        color: white;
+      }
+
+      /* Secondary button */
+      .cta-button.secondary {
+        background-color: transparent;
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .cta-button.secondary:hover {
+        background-color: var(--background-alt);
+        border-color: var(--text-secondary);
+      }
+
+      .cta-button.secondary svg {
+        color: var(--text);
+      }
+
+      .card {
+        background-color: var(--background);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px var(--shadow);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border);
+      }
+
+      .section-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--border);
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .feature-item {
+        background-color: var(--background-alt);
+        border-radius: 8px;
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+      }
+
+      .feature-item:hover {
+        background-color: var(--background);
+      }
+
+      .feature-item h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+      }
+
+      .feature-item p {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+      }
+
+      pre {
+        background-color: var(--code-bg);
+        border: 1px solid var(--code-border);
+        border-radius: 6px;
+        padding: 1.25rem;
+        overflow-x: auto;
+        margin: 1.5rem 0;
+        position: relative;
+      }
+
+      code {
+        font-family:
+          'JetBrains Mono', 'Fira Code', SFMono-Regular, Consolas, Monaco,
+          'Andale Mono', monospace;
+        font-size: 0.9rem;
+        color: var(--text);
+      }
+
+      .command-note {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+      }
+
+      ul {
+        list-style-position: inside;
+        margin: 1rem 0;
+        padding-left: 0.5rem;
+      }
+
+      li {
+        margin-bottom: 0.5rem;
+      }
+
+      footer {
+        background-color: var(--background-alt);
+        text-align: center;
+        padding: 2rem 0;
+        margin-top: 3rem;
+        border-top: 1px solid var(--border);
+      }
+
+      .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-top: 1rem;
+      }
+
+      a {
+        color: var(--link);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+
+      a:hover {
+        color: var(--link-hover);
+      }
+
+      .theme-toggle {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        background-color: var(--background);
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 100;
+        box-shadow: 0 2px 8px var(--shadow);
+        transition: background-color 0.3s;
+      }
+
+      .theme-toggle:hover {
+        background-color: var(--background-alt);
+      }
+
+      .copy-button {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background-color: var(--background);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        opacity: 0;
+        transition:
+          opacity 0.2s,
+          background-color 0.2s;
+      }
+
+      pre:hover .copy-button {
+        opacity: 1;
+      }
+
+      .copy-button:hover {
+        background-color: var(--background-alt);
+      }
+
+      .copy-button.copied {
+        background-color: var(--success);
+        color: white;
+      }
+
+      @media (max-width: 768px) {
+        header h1 {
+          font-size: 2.25rem;
+        }
+
+        header p {
+          font-size: 1.1rem;
+        }
+
+        .feature-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .cta-buttons {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .footer-links {
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .theme-toggle {
+          top: 0.75rem;
+          right: 0.75rem;
+          width: 36px;
+          height: 36px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button
+      class="theme-toggle"
+      id="theme-toggle"
+      aria-label="Toggle dark/light mode"
+    >
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        id="theme-icon"
+      >
+        <path
+          d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M12 2V4"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M12 20V22"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M4.93 4.93L6.34 6.34"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M17.66 17.66L19.07 19.07"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M2 12H4"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M20 12H22"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M6.34 17.66L4.93 19.07"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M19.07 4.93L17.66 6.34"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+
+    <header>
+      <div class="header-content">
+        <h1>code-to-prompt</h1>
+        <p>A Node.js CLI tool to gather and format files for LLM prompts</p>
+
+        <div class="badges">
+          <a
+            href="https://www.npmjs.com/package/code-to-prompt"
+            class="badge"
+            target="_blank"
+            rel="noopener"
+          >
+            <img
+              src="https://img.shields.io/npm/v/code-to-prompt.svg?style=for-the-badge"
+              alt="npm version"
+            />
+          </a>
+          <a
+            href="https://github.com/daveschumaker/code-to-prompt"
+            class="badge"
+            target="_blank"
+            rel="noopener"
+          >
+            <img
+              src="https://img.shields.io/github/license/daveschumaker/code-to-prompt.svg?style=for-the-badge"
+              alt="MIT License"
+            />
+          </a>
+        </div>
+
+        <div class="cta-buttons">
+          <a
+            href="https://github.com/daveschumaker/code-to-prompt"
+            class="cta-button primary"
+            target="_blank"
+            rel="noopener"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            GitHub Repository
+          </a>
+          <a
+            href="https://www.npmjs.com/package/code-to-prompt"
+            class="cta-button primary"
+            target="_blank"
+            rel="noopener"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M2 8.80365V15.1973H7.33189V16.9918H11.998V15.1973H22V8.80365H2Z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <rect
+                x="15.998"
+                y="11.3973"
+                width="2"
+                height="2"
+                fill="currentColor"
+              />
+            </svg>
+            npm Package
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="main-content">
+        <div class="card">
+          <h2 class="section-title">What is code-to-prompt?</h2>
+          <p>
+            A Node.js command-line utility to recursively gather files from
+            specified paths, format their content, and output everything
+            suitable for pasting into Large Language Model (LLM) prompts.
+            Inspired by Simon Willison's Python-based
+            <a
+              href="https://github.com/simonw/files-to-prompt"
+              target="_blank"
+              rel="noopener"
+              >files-to-prompt</a
+            >
+            utility, but implemented in a Node.js/TypeScript environment.
+          </p>
+        </div>
+
+        <h2 class="section-title">Features</h2>
+        <div class="feature-grid">
+          <div class="feature-item">
+            <h3>Recursive Scanning</h3>
+            <p>
+              Recursively scan directories and gather files based on your
+              criteria.
+            </p>
+          </div>
+          <div class="feature-item">
+            <h3>Respect .gitignore</h3>
+            <p>
+              Automatically respects .gitignore patterns to exclude irrelevant
+              files.
+            </p>
+          </div>
+          <div class="feature-item">
+            <h3>Filtering Options</h3>
+            <p>
+              Filter by extension, include hidden files, and use custom ignore
+              patterns.
+            </p>
+          </div>
+          <div class="feature-item">
+            <h3>Multiple Output Formats</h3>
+            <p>
+              Output in plain text, Markdown with fenced code blocks, or
+              Claude-XML format.
+            </p>
+          </div>
+          <div class="feature-item">
+            <h3>File Tree Overview</h3>
+            <p>
+              Optionally generate a file tree structure to provide context for
+              your code.
+            </p>
+          </div>
+          <div class="feature-item">
+            <h3>Line Numbers</h3>
+            <p>
+              Optionally add line numbers to make referencing specific parts of
+              code easier.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="section-title">Installation</h2>
+          <p>Install code-to-prompt globally:</p>
+          <pre><code>npm install -g code-to-prompt</code><button class="copy-button" data-copy="npm install -g code-to-prompt"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
+        </div>
+
+        <div class="card">
+          <h2 class="section-title">Basic Usage</h2>
+          <pre><code>code-to-prompt [options] [paths...]</code><button class="copy-button" data-copy="code-to-prompt [options] [paths...]"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
+
+          <h3>Examples:</h3>
+
+          <pre><code># Process current directory
 code-to-prompt .
 
-// Only .ts and .js in src
+# Only .ts and .js in src
 code-to-prompt -e .ts -e .js ./src
 
- // Markdown output &amp; ignore node_modules via .gitignore
-code-to-prompt ./src --markdown -o prompt.md
-</code></pre>
-    </section>
-    <section id="contributing">
-      <h2>Contributing</h2>
-      <p>Contributions welcome! Fork, create a branch, write code &amp; tests, then open a PR.</p>
-      <ul>
-        <li>Fork the repo</li>
-        <li><code>git checkout -b my-feature</code></li>
-        <li>Add/modify code and tests</li>
-        <li><code>git commit -m "feat: description"</code></li>
-        <li><code>git push origin my-feature</code></li>
-        <li>Open a pull request</li>
-      </ul>
-    </section>
-  </main>
-  <footer>
-    MIT © <a href="https://github.com/your-username/code-to-prompt">code-to-prompt</a>
-  </footer>
-</body>
+# Markdown output & ignore node_modules via .gitignore
+code-to-prompt ./src --markdown -o prompt.md</code><button class="copy-button" data-copy="# Process current directory
+code-to-prompt .
+
+# Only .ts and .js in src
+code-to-prompt -e .ts -e .js ./src
+
+# Markdown output & ignore node_modules via .gitignore
+code-to-prompt ./src --markdown -o prompt.md"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
+          <p class="command-note">
+            See
+            <a
+              href="https://github.com/daveschumaker/code-to-prompt#options"
+              target="_blank"
+              rel="noopener"
+              >GitHub README</a
+            >
+            for all available options.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2 class="section-title">Contributing</h2>
+          <p>Contributions are welcome! Follow these steps:</p>
+          <ul>
+            <li>Fork the repo</li>
+            <li>
+              Create a feature branch (<code>git checkout -b my-feature</code>)
+            </li>
+            <li>Add/modify code and tests</li>
+            <li>Submit a pull request</li>
+          </ul>
+          <p>
+            Check the
+            <a
+              href="https://github.com/daveschumaker/code-to-prompt#contributing"
+              target="_blank"
+              rel="noopener"
+              >GitHub README</a
+            >
+            for more detailed contribution guidelines.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="container">
+        <p>
+          MIT License &copy;
+          <a
+            href="https://github.com/daveschumaker"
+            target="_blank"
+            rel="noopener"
+            >Dave Schumaker</a
+          >
+        </p>
+        <div class="footer-links">
+          <a
+            href="https://github.com/daveschumaker/code-to-prompt"
+            target="_blank"
+            rel="noopener"
+            >GitHub</a
+          >
+          <a
+            href="https://www.npmjs.com/package/code-to-prompt"
+            target="_blank"
+            rel="noopener"
+            >npm</a
+          >
+          <a
+            href="https://github.com/daveschumaker/code-to-prompt/issues"
+            target="_blank"
+            rel="noopener"
+            >Report Issues</a
+          >
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Theme toggle functionality
+      document.addEventListener('DOMContentLoaded', () => {
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const prefersDarkScheme = window.matchMedia(
+          '(prefers-color-scheme: dark)'
+        );
+
+        // Function to toggle between sun and moon icons
+        const updateThemeIcon = (isDark) => {
+          if (isDark) {
+            themeIcon.innerHTML = `
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          `;
+          } else {
+            themeIcon.innerHTML = `
+            <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 2V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 20V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4.93 4.93L6.34 6.34" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M17.66 17.66L19.07 19.07" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 12H4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M20 12H22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6.34 17.66L4.93 19.07" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19.07 4.93L17.66 6.34" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          `;
+          }
+        };
+
+        // Check if user has a saved preference
+        const savedTheme = localStorage.getItem('theme');
+
+        // Apply the saved theme or use system preference
+        if (savedTheme === 'dark') {
+          document.body.classList.add('dark-theme');
+          updateThemeIcon(true);
+        } else if (savedTheme === 'light') {
+          document.body.classList.add('light-theme');
+          updateThemeIcon(false);
+        } else {
+          // No saved preference, check system preference
+          const systemPrefersDark = prefersDarkScheme.matches;
+          updateThemeIcon(systemPrefersDark);
+          // No need to add classes here, CSS media query will handle it
+        }
+
+        // Toggle theme when button is clicked
+        themeToggle.addEventListener('click', () => {
+          const isDarkTheme =
+            document.body.classList.contains('dark-theme') ||
+            (!document.body.classList.contains('light-theme') &&
+              prefersDarkScheme.matches);
+
+          if (isDarkTheme) {
+            // Switch to light theme
+            document.body.classList.remove('dark-theme');
+            document.body.classList.add('light-theme');
+            localStorage.setItem('theme', 'light');
+            updateThemeIcon(false);
+          } else {
+            // Switch to dark theme
+            document.body.classList.remove('light-theme');
+            document.body.classList.add('dark-theme');
+            localStorage.setItem('theme', 'dark');
+            updateThemeIcon(true);
+          }
+        });
+      });
+
+      // Copy button functionality
+      document.addEventListener('DOMContentLoaded', () => {
+        const copyButtons = document.querySelectorAll('.copy-button');
+
+        copyButtons.forEach((button) => {
+          button.addEventListener('click', () => {
+            const textToCopy = button.getAttribute('data-copy');
+            navigator.clipboard.writeText(textToCopy).then(() => {
+              button.classList.add('copied');
+              button.innerHTML = 'Copied!';
+
+              setTimeout(() => {
+                button.classList.remove('copied');
+                button.innerHTML =
+                  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy';
+              }, 2000);
+            });
+          });
+        });
+      });
+    </script>
+  </body>
 </html>
