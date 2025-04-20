@@ -1,6 +1,8 @@
 # code-to-prompt
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![npm version](https://badge.fury.io/js/code-to-prompt.svg)](https://badge.fury.io/js/code-to-prompt)
+
 A Node.js command-line utility to recursively gather files from specified paths, format their content, and output everything suitable for pasting into Large Language Model (LLM) prompts.
 
 ## Motivation
@@ -25,9 +27,13 @@ This tool is heavily inspired by and aims to provide similar functionality to Si
 - Outputs to standard output or a specified file (`-o`).
 - Verbose logging for debugging (`-V`).
 
-## Installation (Local Usage)
+## Installation
 
-As this tool is not intended for public npm release currently, you can install and run it locally from the cloned repository.
+The `code-to-prompt` package is published on npm. You can install it globally:
+
+```bash
+npm install -g code-to-prompt
+```
 
 ### Method 1: Global Link (Recommended for easy access)
 
@@ -178,6 +184,7 @@ code-to-prompt --cxml --include-hidden .
 2. Install dependencies: `npm install`
 3. Build the TypeScript code: `npm run build`
 4. Run tests: `npm test`
+5. Run in development mode (uses `ts-node`): `npm run dev -- [options] [paths...]` (note the `--` before passing args to the script).
 
 ## Contributing
 
