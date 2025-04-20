@@ -756,6 +756,12 @@
                   <td><code>false</code></td>
                 </tr>
                 <tr>
+                  <td><code>--include-binary</code></td>
+                  <td></td>
+                  <td>Include binary files (images, executables, etc.).</td>
+                  <td><code>false</code></td>
+                </tr>
+                <tr>
                   <td><code>--ignore-files-only</code></td>
                   <td></td>
                   <td>Makes <code>--ignore</code> patterns only apply to files, not directories.</td>
@@ -858,7 +864,10 @@ code-to-prompt ./src ./tests --markdown -o prompt.md</code><button class="copy-b
           <h4>8. Combine find with code-to-prompt using null separator</h4>
           <pre><code>find ./src -type f \( -name "*.ts" -o -name "*.json" \) -print0 | code-to-prompt -0 --markdown</code><button class="copy-button" data-copy="find ./src -type f \( -name \"*.ts\" -o -name \"*.json\" \) -print0 | code-to-prompt -0 --markdown"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
 
-          <h4>9. Multi-line configuration for complex commands</h4>
+          <h4>9. Include binary files in the output</h4>
+          <pre><code>code-to-prompt --include-binary . -o output-with-binaries.txt</code><button class="copy-button" data-copy="code-to-prompt --include-binary . -o output-with-binaries.txt"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
+
+          <h4>10. Multi-line configuration for complex commands</h4>
           <pre><code>code-to-prompt \
   --markdown \
   --line-numbers \

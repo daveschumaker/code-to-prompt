@@ -31,7 +31,10 @@ export async function generateFileTree(
       const fileExt = path.extname(p).toLowerCase();
       const isBinaryFile = BINARY_FILE_EXTENSIONS.includes(fileExt);
       
-      if (!isBinaryFile || options.includeBinaryFiles) {
+      // This debug output would be helpful, but fileTree doesn't have a debug function
+      // We could add one in the future if needed
+      
+      if (!isBinaryFile || options.includeBinaryFiles === true) {
         fileSet.add(p);
       }
     }

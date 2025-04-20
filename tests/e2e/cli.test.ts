@@ -240,4 +240,81 @@ describe('CLI End-to-End Tests', () => {
     }
   });
 
+  it('should filter binary files by default and include them with --include-binary flag', async () => {
+    // Create a binary file (PNG) and a text file
+    const binaryFilePath = path.join(tempTestDir, 'sample.png'); 
+    const textFilePath = path.join(tempTestDir, 'sample.txt');
+    
+    // Create a simple binary content (not a valid PNG, but has binary characteristics)
+    const binaryContent = Buffer.from([
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
+      0x00, 0x00, 0x00, 0x0D, // IHDR chunk length
+      0x49, 0x48, 0x44, 0x52  // IHDR chunk type
+    ]);
+    
+    await fs.writeFile(binaryFilePath, binaryContent);
+    await fs.writeFile(textFilePath, 'Text content');
+    
+    // Get real paths for assertions
+    const realBinaryPath = await fs.realpath(binaryFilePath);
+    const realTextPath = await fs.realpath(textFilePath);
+    
+    // Run without --include-binary flag (default behavior)
+    const withoutFlag = spawnSync(
+      'node',
+      [cliEntryPoint, '.'],
+      { cwd: tempTestDir, encoding: 'utf-8' }
+    );
+    
+    // Run with --include-binary flag
+    const withFlag = spawnSync(
+      'node',
+      [cliEntryPoint, '--include-binary', '.'],
+      { cwd: tempTestDir, encoding: 'utf-8' }
+    );
+    
+    // Default behavior: binary file should be excluded
+    expect(withoutFlag.status).toBe(0);
+    expect(withoutFlag.stdout).not.toContain(`File: ${realBinaryPath}`);
+    expect(withoutFlag.stdout).toContain(`File: ${realTextPath}`);
+    expect(withoutFlag.stdout).toContain('Text content');
+    
+    // With --include-binary: binary file should be included 
+    expect(withFlag.status).toBe(0);
+    expect(withFlag.stdout).toContain(`File: ${realBinaryPath}`);
+    expect(withFlag.stdout).toContain(`File: ${realTextPath}`);
+  });
+  
+  it('should exclude binary files from tree view by default', async () => {
+    // Create a binary file and a text file
+    const binaryFilePath = path.join(tempTestDir, 'image.png');
+    const textFilePath = path.join(tempTestDir, 'document.txt');
+    
+    await fs.writeFile(binaryFilePath, Buffer.from([0x89, 0x50, 0x4E, 0x47])); // PNG signature
+    await fs.writeFile(textFilePath, 'Text content');
+    
+    // Run with tree view, without --include-binary flag
+    const resultWithoutBinary = spawnSync(
+      'node',
+      [cliEntryPoint, '--tree', '.'],
+      { cwd: tempTestDir, encoding: 'utf-8' }
+    );
+    
+    // Run with tree view and --include-binary flag
+    const resultWithBinary = spawnSync(
+      'node',
+      [cliEntryPoint, '--tree', '--include-binary', '.'],
+      { cwd: tempTestDir, encoding: 'utf-8' }
+    );
+    
+    // Without --include-binary: binary file should not be in tree
+    expect(resultWithoutBinary.status).toBe(0);
+    expect(resultWithoutBinary.stdout).toContain('document.txt');
+    expect(resultWithoutBinary.stdout).not.toContain('image.png');
+    
+    // With --include-binary: binary file should be in tree
+    expect(resultWithBinary.status).toBe(0);
+    expect(resultWithBinary.stdout).toContain('document.txt');
+    expect(resultWithBinary.stdout).toContain('image.png');
+  });
 });

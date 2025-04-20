@@ -151,9 +151,13 @@ async function processPath(
     const fileExt = path.extname(targetPath).toLowerCase();
     const isBinaryFile = BINARY_FILE_EXTENSIONS.includes(fileExt);
     
+    options.debug(
+      chalk.cyan(`Checking binary status: ${baseName} (ext: ${fileExt}, isBinary: ${isBinaryFile}, includeBinary: ${options.includeBinaryFiles})`)
+    );
+    
     if (isBinaryFile && !options.includeBinaryFiles) {
       options.debug(
-        chalk.yellow(`Skipping binary file: ${baseName}`)
+        chalk.yellow(`Skipping binary file: ${baseName} (ext: ${fileExt})`)
       );
       options.stats.skippedFiles++;
       return;
@@ -475,6 +479,7 @@ async function readPathsFromStdin(
       writer(treeDisplayRoot + path.sep); // Use the common ancestor display root
       writer('---');
       // Pass the calculated treeDisplayRoot as baseIgnorePath *for tree generation only*
+      debug(chalk.blue(`Setting up tree options. Include binary: ${argv['include-binary'] ?? false}`));
       const treeOptions: FileTreeOptions = {
           baseIgnorePath: treeDisplayRoot, // Use the correct root for tree display
           mainIg, // Still use the main ignore instance from cwd

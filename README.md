@@ -118,6 +118,7 @@ find ./src -name "*.ts" -print0 | code-to-prompt -0
 | `paths...`            |       | Input file or directory paths (reads from stdin if no paths given).                    |               |
 | `--extension`         | `-e`  | File extension(s) to include (e.g., `-e .ts -e .js`). Can be repeated.                 | (Include all) |
 | `--include-hidden`    |       | Include hidden files and folders (those starting with `.`).                            | `false`       |
+| `--include-binary`    |       | Include binary files (images, executables, etc.).                                      | `false`       |
 | `--ignore-files-only` |       | Makes `--ignore` patterns only apply to files, not directories.                        | `false`       |
 | `--ignore-gitignore`  |       | Ignore `.gitignore` files and include all files found.                                 | `false`       |
 | `--ignore`            |       | Glob pattern(s) to ignore using minimatch. Can be repeated (e.g., `--ignore "*.log"`). | `[]`          |
@@ -182,7 +183,13 @@ find ./src -type f \( -name "*.ts" -o -name "*.json" \) -print0 | code-to-prompt
 code-to-prompt --cxml --include-hidden .
 ```
 
-#### 9. Multi-line configuration options
+#### 9. Include binary files in the output
+
+```bash
+code-to-prompt --include-binary . -o output-with-binaries.txt
+```
+
+#### 10. Multi-line configuration options
 
 ```bash
 code-to-prompt \
