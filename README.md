@@ -178,6 +178,25 @@ find ./src -type f \( -name "*.ts" -o -name "*.json" \) -print0 | code-to-prompt
 code-to-prompt --cxml --include-hidden .
 ```
 
+#### 9. Multi-line configuration options
+
+```bash
+code-to-prompt \
+  --markdown \
+  --line-numbers \
+  --ignore "*.snap" \
+  --ignore "dist/**" \
+  -o specific-prompt.md \
+  src/index.ts \
+  src/lib/printers.ts \
+  src/lib/fileTree.ts \
+  tests/e2e/cli.test.ts \
+  README.md \
+  LICENSE \
+  ./src/types \
+  ./assets
+```
+
 ## Development
 
 1. Clone the repository.
