@@ -13,6 +13,7 @@ import ignore, { Ignore } from 'ignore'; // Import the ignore library
 import type { ErrnoException, MaybeError } from './types';
 import { printPath, Writer } from './lib/printers';
 import { generateFileTree, FileTreeOptions } from './lib/fileTree'; // Import FileTreeOptions
+import { BINARY_FILE_EXTENSIONS } from './lib/constants'; // Import binary file extensions list
 
 // --- Helper Functions ---
 
@@ -77,6 +78,7 @@ interface ProcessPathOptions {
   tree: boolean; // Generate file tree at top
   debug: (msg: string) => void; // Debug logging helper
   stats: { foundFiles: number; skippedFiles: number }; // Run stats
+  includeBinaryFiles: boolean; // Whether to include binary files
 }
 
 /**
@@ -145,9 +147,20 @@ async function processPath(
       return;
     }
 
+    // Check for binary files first
+    const fileExt = path.extname(targetPath).toLowerCase();
+    const isBinaryFile = BINARY_FILE_EXTENSIONS.includes(fileExt);
+    
+    if (isBinaryFile && !options.includeBinaryFiles) {
+      options.debug(
+        chalk.yellow(`Skipping binary file: ${baseName}`)
+      );
+      options.stats.skippedFiles++;
+      return;
+    }
+
     // Filter Extensions
     if (options.extensions.length > 0) {
-      const fileExt = path.extname(targetPath);
       const matches = options.extensions.some((ext) => fileExt === ext);
       if (!matches) {
         options.debug(
@@ -264,6 +277,11 @@ async function readPathsFromStdin(
         type: 'boolean',
         default: false,
         description: 'Include hidden files/folders'
+      })
+      .option('include-binary', {
+        type: 'boolean',
+        default: false,
+        description: 'Include binary files (images, executables, etc.)'
       })
       .option('ignore-files-only', {
         type: 'boolean',
@@ -460,7 +478,8 @@ async function readPathsFromStdin(
       const treeOptions: FileTreeOptions = {
           baseIgnorePath: treeDisplayRoot, // Use the correct root for tree display
           mainIg, // Still use the main ignore instance from cwd
-          includeHidden: argv['include-hidden'] ?? false
+          includeHidden: argv['include-hidden'] ?? false,
+          includeBinaryFiles: argv['include-binary'] ?? false
       };
       const treeStr = await generateFileTree(absolutePaths, treeOptions);
       writer(treeStr.trimEnd());
@@ -499,7 +518,8 @@ async function readPathsFromStdin(
         baseIgnorePath, // Pass the base path
         tree: argv.tree ?? false, // Whether to generate file tree
         debug: debug,
-        stats: stats
+        stats: stats,
+        includeBinaryFiles: argv['include-binary'] ?? false
       };
       // targetPath is already absolute here
       await processPath(targetPath, options);

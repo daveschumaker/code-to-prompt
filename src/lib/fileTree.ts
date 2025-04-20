@@ -1,11 +1,13 @@
 import path from 'path';
 import fsp from 'fs/promises';
 import type { Ignore } from 'ignore';
+import { BINARY_FILE_EXTENSIONS } from './constants';
 
 export interface FileTreeOptions {
   baseIgnorePath: string;
   mainIg: Ignore;
   includeHidden: boolean;
+  includeBinaryFiles?: boolean;
 }
 
 export async function generateFileTree(
@@ -25,7 +27,13 @@ export async function generateFileTree(
         await recurse(path.join(p, e.name));
       }
     } else {
-      fileSet.add(p);
+      // Check for binary files before adding to fileSet
+      const fileExt = path.extname(p).toLowerCase();
+      const isBinaryFile = BINARY_FILE_EXTENSIONS.includes(fileExt);
+      
+      if (!isBinaryFile || options.includeBinaryFiles) {
+        fileSet.add(p);
+      }
     }
   }
   for (const p of paths) await recurse(p);
