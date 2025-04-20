@@ -390,7 +390,9 @@ async function readPathsFromStdin(
     }
 
     // --- Read Root .gitignore and Create Ignore Instance ---
-    const baseIgnorePath = process.cwd(); // Assume .gitignore is relative to CWD
+    const baseIgnorePath = findCommonAncestor(
+      allPaths.map(p => path.resolve(p))
+    ); // Respect .gitignore at the project root (common ancestor)
     let mainIg: Ignore = ignore();
     // Wrap ignores to avoid thrown errors on non-relative paths
     const _origIgnores = mainIg.ignores.bind(mainIg);
