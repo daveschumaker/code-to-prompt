@@ -213,13 +213,13 @@ code-to-prompt \
 
 Contributions are welcome! To contribute, please follow these steps:
 
-1. Fork the project repository.
+1. [Fork the project repository](https://github.com/daveschumaker/code-to-prompt/fork).
 2. Create a new branch for your feature or bugfix (e.g., `git checkout -b my-feature`).
 3. Add or modify code as needed.
 4. Write tests for your changes.
 5. Commit your changes (`git commit -m "feat: description"`).
 6. Push to your fork (`git push origin my-feature`).
-7. Open a pull request against the main repository.
+7. [Open a pull request](https://github.com/daveschumaker/code-to-prompt/pulls) against the main repository.
 8. Address any review comments.
 
 ## License

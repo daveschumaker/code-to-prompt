@@ -7,6 +7,25 @@
       name="description"
       content="Code-to-prompt: A CLI tool to gather and format files for LLM prompts"
     />
+    <meta name="author" content="Dave Schumaker" />
+    <meta name="keywords" content="CLI, LLM prompts, code formatting, node.js, typescript, AI tools" />
+    
+    <!-- Favicon -->
+    <link rel="icon" href="code-to-prompt-logo.png" type="image/png" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://daveschumaker.github.io/code-to-prompt/" />
+    <meta property="og:title" content="code-to-prompt" />
+    <meta property="og:description" content="A Node.js CLI tool to gather and format files for LLM prompts" />
+    <meta property="og:image" content="https://daveschumaker.github.io/code-to-prompt/social-card.png" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://daveschumaker.github.io/code-to-prompt/" />
+    <meta property="twitter:title" content="code-to-prompt" />
+    <meta property="twitter:description" content="A Node.js CLI tool to gather and format files for LLM prompts" />
+    <meta property="twitter:image" content="https://daveschumaker.github.io/code-to-prompt/social-card.png" />
     <title>code-to-prompt</title>
     <link
       rel="stylesheet"
@@ -873,12 +892,12 @@ code-to-prompt ./src ./tests --markdown -o prompt.md</code><button class="copy-b
           <h2 class="section-title">Contributing</h2>
           <p>Contributions are welcome! Follow these steps:</p>
           <ul>
-            <li>Fork the repo</li>
+            <li><a href="https://github.com/daveschumaker/code-to-prompt/fork" target="_blank" rel="noopener">Fork the repo</a></li>
             <li>
               Create a feature branch (<code>git checkout -b my-feature</code>)
             </li>
             <li>Add/modify code and tests</li>
-            <li>Submit a pull request</li>
+            <li><a href="https://github.com/daveschumaker/code-to-prompt/pulls" target="_blank" rel="noopener">Submit a pull request</a></li>
           </ul>
           <p>
             Check the
@@ -897,7 +916,7 @@ code-to-prompt ./src ./tests --markdown -o prompt.md</code><button class="copy-b
     <footer>
       <div class="container">
         <p>
-          MIT License &copy;
+          MIT License &copy; <span id="year">2023</span>
           <a
             href="https://github.com/daveschumaker"
             target="_blank"
@@ -927,6 +946,11 @@ code-to-prompt ./src ./tests --markdown -o prompt.md</code><button class="copy-b
         </div>
       </div>
     </footer>
+    
+    <!-- Add the year script before the other scripts -->
+    <script>
+      document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
 
     <script>
       // Theme toggle functionality
