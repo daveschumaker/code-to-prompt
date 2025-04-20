@@ -1,5 +1,9 @@
 # code-to-prompt
 
+<p align="center">
+  <img src="docs/code-to-prompt-logo.png" alt="code-to-prompt logo" width="250" />
+</p>
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://badge.fury.io/js/code-to-prompt.svg)](https://badge.fury.io/js/code-to-prompt)
 
