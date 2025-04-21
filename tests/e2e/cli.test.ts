@@ -102,10 +102,14 @@ describe('CLI End-to-End Tests', () => {
   it('should prepend tree and add line numbers when both --tree and --line-numbers are used', async () => {
     const filePath = path.join(tempTestDir, 'sample.txt');
     await fs.writeFile(filePath, 'a\nb');
-    const result = spawnSync('node', [cliEntryPoint, '--tree', '--line-numbers', filePath], {
-      cwd: tempTestDir,
-      encoding: 'utf-8'
-    });
+    const result = spawnSync(
+      'node',
+      [cliEntryPoint, '--tree', '--line-numbers', filePath],
+      {
+        cwd: tempTestDir,
+        encoding: 'utf-8'
+      }
+    );
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('Folder structure:');
     expect(result.stdout).toContain('1  a');
@@ -160,14 +164,15 @@ describe('CLI End-to-End Tests', () => {
       const normalizedStdout = result.stdout.replace(/\r\n/g, '\n');
       const treeStartIndex = normalizedStdout.indexOf('---\n') + 4; // Find start of tree after first '---'
       const treeEndIndex = normalizedStdout.indexOf('\n---', treeStartIndex); // Find end of tree before second '---'
-      const actualTree = normalizedStdout.substring(treeStartIndex, treeEndIndex).trim();
+      const actualTree = normalizedStdout
+        .substring(treeStartIndex, treeEndIndex)
+        .trim();
 
       expect(actualTree).toBe(expectedTreeStructure);
 
       // Check that the file content is also included after the tree
       expect(result.stdout).toContain(`File: ${targetFilePath}`);
       expect(result.stdout).toContain('External content');
-
     } finally {
       // Clean up the external directory
       await fs.rm(externalTargetDir, { recursive: true, force: true });
@@ -223,7 +228,9 @@ describe('CLI End-to-End Tests', () => {
       const normalizedStdout = result.stdout.replace(/\r\n/g, '\n');
       const treeStartIndex = normalizedStdout.indexOf('---\n') + 4;
       const treeEndIndex = normalizedStdout.indexOf('\n---', treeStartIndex);
-      const actualTree = normalizedStdout.substring(treeStartIndex, treeEndIndex).trim();
+      const actualTree = normalizedStdout
+        .substring(treeStartIndex, treeEndIndex)
+        .trim();
 
       // Normalize path separators in actual tree for comparison if needed (though generateFileTree should use path.sep)
       expect(actualTree).toBe(expectedTreeStructure);
@@ -233,7 +240,6 @@ describe('CLI End-to-End Tests', () => {
       expect(result.stdout).toContain('Content file 1');
       expect(result.stdout).toContain(`File: ${file2Path}`);
       expect(result.stdout).toContain('Content file 2');
-
     } finally {
       // Clean up the external directory structure
       await fs.rm(externalBaseDir, { recursive: true, force: true });
@@ -242,76 +248,88 @@ describe('CLI End-to-End Tests', () => {
 
   it('should filter binary files by default and include them with --include-binary flag', async () => {
     // Create a binary file (PNG) and a text file
-    const binaryFilePath = path.join(tempTestDir, 'sample.png'); 
+    const binaryFilePath = path.join(tempTestDir, 'sample.png');
     const textFilePath = path.join(tempTestDir, 'sample.txt');
-    
+
     // Create a simple binary content (not a valid PNG, but has binary characteristics)
     const binaryContent = Buffer.from([
-      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
-      0x00, 0x00, 0x00, 0x0D, // IHDR chunk length
-      0x49, 0x48, 0x44, 0x52  // IHDR chunk type
+      0x89,
+      0x50,
+      0x4e,
+      0x47,
+      0x0d,
+      0x0a,
+      0x1a,
+      0x0a, // PNG signature
+      0x00,
+      0x00,
+      0x00,
+      0x0d, // IHDR chunk length
+      0x49,
+      0x48,
+      0x44,
+      0x52 // IHDR chunk type
     ]);
-    
+
     await fs.writeFile(binaryFilePath, binaryContent);
     await fs.writeFile(textFilePath, 'Text content');
-    
+
     // Get real paths for assertions
     const realBinaryPath = await fs.realpath(binaryFilePath);
     const realTextPath = await fs.realpath(textFilePath);
-    
+
     // Run without --include-binary flag (default behavior)
-    const withoutFlag = spawnSync(
-      'node',
-      [cliEntryPoint, '.'],
-      { cwd: tempTestDir, encoding: 'utf-8' }
-    );
-    
+    const withoutFlag = spawnSync('node', [cliEntryPoint, '.'], {
+      cwd: tempTestDir,
+      encoding: 'utf-8'
+    });
+
     // Run with --include-binary flag
     const withFlag = spawnSync(
       'node',
       [cliEntryPoint, '--include-binary', '.'],
       { cwd: tempTestDir, encoding: 'utf-8' }
     );
-    
+
     // Default behavior: binary file should be excluded
     expect(withoutFlag.status).toBe(0);
     expect(withoutFlag.stdout).not.toContain(`File: ${realBinaryPath}`);
     expect(withoutFlag.stdout).toContain(`File: ${realTextPath}`);
     expect(withoutFlag.stdout).toContain('Text content');
-    
-    // With --include-binary: binary file should be included 
+
+    // With --include-binary: binary file should be included
     expect(withFlag.status).toBe(0);
     expect(withFlag.stdout).toContain(`File: ${realBinaryPath}`);
     expect(withFlag.stdout).toContain(`File: ${realTextPath}`);
   });
-  
+
   it('should exclude binary files from tree view by default', async () => {
     // Create a binary file and a text file
     const binaryFilePath = path.join(tempTestDir, 'image.png');
     const textFilePath = path.join(tempTestDir, 'document.txt');
-    
-    await fs.writeFile(binaryFilePath, Buffer.from([0x89, 0x50, 0x4E, 0x47])); // PNG signature
+
+    await fs.writeFile(binaryFilePath, Buffer.from([0x89, 0x50, 0x4e, 0x47])); // PNG signature
     await fs.writeFile(textFilePath, 'Text content');
-    
+
     // Run with tree view, without --include-binary flag
     const resultWithoutBinary = spawnSync(
       'node',
       [cliEntryPoint, '--tree', '.'],
       { cwd: tempTestDir, encoding: 'utf-8' }
     );
-    
+
     // Run with tree view and --include-binary flag
     const resultWithBinary = spawnSync(
       'node',
       [cliEntryPoint, '--tree', '--include-binary', '.'],
       { cwd: tempTestDir, encoding: 'utf-8' }
     );
-    
+
     // Without --include-binary: binary file should not be in tree
     expect(resultWithoutBinary.status).toBe(0);
     expect(resultWithoutBinary.stdout).toContain('document.txt');
     expect(resultWithoutBinary.stdout).not.toContain('image.png');
-    
+
     // With --include-binary: binary file should be in tree
     expect(resultWithBinary.status).toBe(0);
     expect(resultWithBinary.stdout).toContain('document.txt');
@@ -362,5 +380,30 @@ describe('CLI End-to-End Tests', () => {
     expect(result.stdout).not.toContain(`File: ${realLog}`);
     expect(result.stdout).not.toContain(`File: ${realSnap}`);
     expect(result.stdout).toContain(`File: ${realTxt}`);
+  });
+
+  it('applies --ignore patterns to the tree view', async () => {
+    // Setup: create foo.ts, bar.js and baz.txt
+    await fs.writeFile(path.join(tempTestDir, 'foo.ts'), '');
+    await fs.writeFile(path.join(tempTestDir, 'bar.js'), '');
+    await fs.writeFile(path.join(tempTestDir, 'baz.txt'), '');
+
+    // Run with tree + ignore only .txt files
+    const result = spawnSync(
+      'node',
+      [cliEntryPoint, '--tree', '--ignore', '*.txt', tempTestDir],
+      { cwd: tempTestDir, encoding: 'utf-8' }
+    );
+
+    expect(result.status).toBe(0);
+    // Extract tree block between first '---' delimiters
+    const out = result.stdout.replace(/\r\n/g, '\n');
+    const start = out.indexOf('---\n');
+    const end = out.indexOf('\n---', start + 4);
+    const treeBlock = out.substring(start + 4, end);
+    // baz.txt should not appear in the tree
+    expect(treeBlock).toContain('foo.ts');
+    expect(treeBlock).toContain('bar.js');
+    expect(treeBlock).not.toContain('baz.txt');
   });
 });
