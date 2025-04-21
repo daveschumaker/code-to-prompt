@@ -137,7 +137,7 @@ async function processPath(
     // Filter custom ignore patterns (--ignore) applied to files
     if (
       options.ignorePatterns.some((pattern) =>
-        minimatch(baseName, pattern, { dot: true })
+        minimatch(relativePath, pattern, { dot: true })
       )
     ) {
       options.debug(
@@ -206,7 +206,7 @@ async function processPath(
     if (
       !options.ignoreFilesOnly &&
       options.ignorePatterns.some((pattern) =>
-        minimatch(baseName, pattern, { dot: true })
+        minimatch(relativePath, pattern, { dot: true })
       )
     ) {
       options.debug(
@@ -275,6 +275,9 @@ async function readPathsFromStdin(
       .option('extension', {
         alias: 'e',
         type: 'string',
+        array: true,
+        nargs: 1,
+        default: [],
         description: 'File extensions to include'
       })
       .option('include-hidden', {
@@ -299,6 +302,9 @@ async function readPathsFromStdin(
       })
       .option('ignore', {
         type: 'string',
+        array: true,
+        nargs: 1,
+        default: [],
         description: 'Glob patterns to ignore'
       })
       .option('output', {

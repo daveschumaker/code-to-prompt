@@ -317,4 +317,50 @@ describe('CLI End-to-End Tests', () => {
     expect(resultWithBinary.stdout).toContain('document.txt');
     expect(resultWithBinary.stdout).toContain('image.png');
   });
+
+  it('should include only specified extensions when multiple -e flags are used', async () => {
+    const jsFile = path.join(tempTestDir, 'file1.js');
+    const tsFile = path.join(tempTestDir, 'file2.ts');
+    const txtFile = path.join(tempTestDir, 'file3.txt');
+    await fs.writeFile(jsFile, 'JS content');
+    await fs.writeFile(tsFile, 'TS content');
+    await fs.writeFile(txtFile, 'TXT content');
+
+    const result = spawnSync(
+      'node',
+      [cliEntryPoint, '-e', '.js', '-e', '.ts', '.'],
+      { cwd: tempTestDir, encoding: 'utf-8' }
+    );
+
+    expect(result.status).toBe(0);
+    const realJs = await fs.realpath(jsFile);
+    const realTs = await fs.realpath(tsFile);
+    const realTxt = await fs.realpath(txtFile);
+    expect(result.stdout).toContain(`File: ${realJs}`);
+    expect(result.stdout).toContain(`File: ${realTs}`);
+    expect(result.stdout).not.toContain(`File: ${realTxt}`);
+  });
+
+  it('should ignore files matching multiple --ignore patterns', async () => {
+    const logFile = path.join(tempTestDir, 'a.log');
+    const snapFile = path.join(tempTestDir, 'b.snap');
+    const txtFile = path.join(tempTestDir, 'c.txt');
+    await fs.writeFile(logFile, 'ignore me');
+    await fs.writeFile(snapFile, 'ignore me too');
+    await fs.writeFile(txtFile, 'include me');
+
+    const result = spawnSync(
+      'node',
+      [cliEntryPoint, '--ignore', '*.log', '--ignore', '*.snap', '.'],
+      { cwd: tempTestDir, encoding: 'utf-8' }
+    );
+
+    expect(result.status).toBe(0);
+    const realLog = await fs.realpath(logFile);
+    const realSnap = await fs.realpath(snapFile);
+    const realTxt = await fs.realpath(txtFile);
+    expect(result.stdout).not.toContain(`File: ${realLog}`);
+    expect(result.stdout).not.toContain(`File: ${realSnap}`);
+    expect(result.stdout).toContain(`File: ${realTxt}`);
+  });
 });
