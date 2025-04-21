@@ -417,10 +417,10 @@ async function readPathsFromStdin(
       }
     }
 
-    // --- Read Root .gitignore and Create Ignore Instance ---
-    const baseIgnorePath = findCommonAncestor(
-      allPaths.map(p => path.resolve(p))
-    ); // Respect .gitignore at the project root (common ancestor)
+    // --- Prepare base paths ---
+    const cwd = process.cwd();
+    // baseIgnorePath is where .gitignore is loaded from and relative paths are calculated
+    const baseIgnorePath = cwd;
     let mainIg: Ignore = ignore();
     // Wrap ignores to avoid thrown errors on non-relative paths
     const _origIgnores = mainIg.ignores.bind(mainIg);
@@ -488,9 +488,11 @@ async function readPathsFromStdin(
       debug(chalk.blue(`Setting up tree options. Include binary: ${argv['include-binary'] ?? false}`));
       const treeOptions: FileTreeOptions = {
           baseIgnorePath: treeDisplayRoot, // Use the correct root for tree display
-          mainIg, // Still use the main ignore instance from cwd
+          mainIg, // .gitignore rules
           includeHidden: argv['include-hidden'] ?? false,
-          includeBinaryFiles: argv['include-binary'] ?? false
+          includeBinaryFiles: argv['include-binary'] ?? false,
+          ignorePatterns,   // CLI --ignore patterns
+          ignoreFilesOnly: argv['ignore-files-only'] ?? false  // apply ignore only to files if set
       };
       const treeStr = await generateFileTree(absolutePaths, treeOptions);
       writer(treeStr.trimEnd());
