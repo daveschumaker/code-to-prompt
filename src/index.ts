@@ -539,6 +539,16 @@ async function readPathsFromStdin(
       await new Promise<void>((resolve) => {
         fileStream!.end(() => resolve());
       });
+      
+      // Update the modification time of the output file
+      if (argv.output) {
+        try {
+          const now = new Date();
+          await fsp.utimes(argv.output, now, now);
+        } catch (error) {
+          debug(chalk.yellow(`Could not update modification time of ${argv.output}`));
+        }
+      }
     }
 
     // Print run statistics to terminal
