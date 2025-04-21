@@ -46,8 +46,7 @@ This method makes the `code-to-prompt` command available anywhere in your termin
 1. **Clone the repository:**
 
    ```bash
-   # Replace with your actual repository URL if different
-   git clone https://github.com/your-username/code-to-prompt.git
+   git clone https://github.com/daveschumaker/code-to-prompt.git
    cd code-to-prompt
    ```
 
