@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 // src/index.ts
-#!/usr/bin/env node
 
 // src/index.ts
 
