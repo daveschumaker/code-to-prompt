@@ -162,11 +162,25 @@ describe('CLI End-to-End Tests', () => {
       const expectedTreeStructure = `.\n└── ${targetFileName}`;
       // Normalize line endings just in case
       const normalizedStdout = result.stdout.replace(/\r\n/g, '\n');
-      const treeStartIndex = normalizedStdout.indexOf('---\n') + 4; // Find start of tree after first '---'
-      const treeEndIndex = normalizedStdout.indexOf('\n---', treeStartIndex); // Find end of tree before second '---'
+      const folderStructureLine = 'Folder structure:';
+      const folderStructureIndex = normalizedStdout.indexOf(folderStructureLine);
+      if (folderStructureIndex === -1) throw new Error("Missing 'Folder structure:' line");
+
+      const firstDelimiter = '---\n';
+      const firstDelimiterIndex = normalizedStdout.indexOf(firstDelimiter, folderStructureIndex);
+      if (firstDelimiterIndex === -1) throw new Error("Missing first '---' after folder structure");
+      const treeStartIndex = firstDelimiterIndex + firstDelimiter.length;
+
+      // Find the *next* '---' line which marks the end of the tree block
+      const secondDelimiter = '\n---\n';
+      const secondDelimiterIndex = normalizedStdout.indexOf(secondDelimiter, treeStartIndex);
+      if (secondDelimiterIndex === -1) throw new Error("Missing second '---' after tree");
+      // The tree ends *before* the newline of the second delimiter
+      const treeEndIndex = secondDelimiterIndex;
+
       const actualTree = normalizedStdout
         .substring(treeStartIndex, treeEndIndex)
-        .trim();
+        .trim(); // Trim whitespace as the original test did
 
       expect(actualTree).toBe(expectedTreeStructure);
 
@@ -226,11 +240,25 @@ describe('CLI End-to-End Tests', () => {
       ].join('\n');
 
       const normalizedStdout = result.stdout.replace(/\r\n/g, '\n');
-      const treeStartIndex = normalizedStdout.indexOf('---\n') + 4;
-      const treeEndIndex = normalizedStdout.indexOf('\n---', treeStartIndex);
+      const folderStructureLine = 'Folder structure:';
+      const folderStructureIndex = normalizedStdout.indexOf(folderStructureLine);
+      if (folderStructureIndex === -1) throw new Error("Missing 'Folder structure:' line");
+
+      const firstDelimiter = '---\n';
+      const firstDelimiterIndex = normalizedStdout.indexOf(firstDelimiter, folderStructureIndex);
+      if (firstDelimiterIndex === -1) throw new Error("Missing first '---' after folder structure");
+      const treeStartIndex = firstDelimiterIndex + firstDelimiter.length;
+
+      // Find the *next* '---' line which marks the end of the tree block
+      const secondDelimiter = '\n---\n';
+      const secondDelimiterIndex = normalizedStdout.indexOf(secondDelimiter, treeStartIndex);
+      if (secondDelimiterIndex === -1) throw new Error("Missing second '---' after tree");
+      // The tree ends *before* the newline of the second delimiter
+      const treeEndIndex = secondDelimiterIndex;
+
       const actualTree = normalizedStdout
         .substring(treeStartIndex, treeEndIndex)
-        .trim();
+        .trim(); // Trim whitespace as the original test did
 
       // Normalize path separators in actual tree for comparison if needed (though generateFileTree should use path.sep)
       expect(actualTree).toBe(expectedTreeStructure);
@@ -396,11 +424,26 @@ describe('CLI End-to-End Tests', () => {
     );
 
     expect(result.status).toBe(0);
-    // Extract tree block between first '---' delimiters
+    // Extract tree block between the '---' delimiters following 'Folder structure:'
     const out = result.stdout.replace(/\r\n/g, '\n');
-    const start = out.indexOf('---\n');
-    const end = out.indexOf('\n---', start + 4);
-    const treeBlock = out.substring(start + 4, end);
+    const folderStructureLine = 'Folder structure:';
+    const folderStructureIndex = out.indexOf(folderStructureLine);
+    if (folderStructureIndex === -1) throw new Error("Missing 'Folder structure:' line");
+
+    const firstDelimiter = '---\n';
+    const firstDelimiterIndex = out.indexOf(firstDelimiter, folderStructureIndex);
+    if (firstDelimiterIndex === -1) throw new Error("Missing first '---' after folder structure");
+    const treeStartIndex = firstDelimiterIndex + firstDelimiter.length;
+
+    // Find the *next* '---' line which marks the end of the tree block
+    const secondDelimiter = '\n---\n';
+    const secondDelimiterIndex = out.indexOf(secondDelimiter, treeStartIndex);
+    if (secondDelimiterIndex === -1) throw new Error("Missing second '---' after tree");
+    // The tree ends *before* the newline of the second delimiter
+    const treeEndIndex = secondDelimiterIndex;
+
+    // Extract the block *without* trimming, as the original test did
+    const treeBlock = out.substring(treeStartIndex, treeEndIndex);
     // baz.txt should not appear in the tree
     expect(treeBlock).toContain('foo.ts');
     expect(treeBlock).toContain('bar.js');
