@@ -722,7 +722,13 @@
 
         <div class="card">
           <h2 class="section-title">Basic Usage</h2>
-          <pre><code>code-to-prompt [options] [paths...]</code><button class="copy-button" data-copy="code-to-prompt [options] [paths...]"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
+          <pre><code>code-to-prompt [command] [options] [paths...]</code><button class="copy-button" data-copy="code-to-prompt [command] [options] [paths...]"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
+
+          <h3>Commands</h3>
+          <p>In addition to processing paths, <code>code-to-prompt</code> supports the following command:</p>
+          <ul>
+            <li><code>init</code>: Creates a default configuration file (<code>config.json</code>) in the standard XDG config location (e.g., <code>~/.config/code-to-prompt/config.json</code>) if one doesn't already exist. This allows you to set persistent default options.</li>
+          </ul>
 
           <h3>Options Table</h3>
 
@@ -742,6 +748,12 @@
                   <td></td>
                   <td>Input file or directory paths (reads from stdin if no paths given).</td>
                   <td></td>
+                </tr>
+                <tr>
+                  <td><code>--config</code></td>
+                  <td></td>
+                  <td>Path to configuration file. Defaults to <code>~/.config/code-to-prompt/config.json</code> (or XDG equivalent).</td>
+                  <td>(See description)</td>
                 </tr>
                 <tr>
                   <td><code>--extension</code></td>
@@ -839,6 +851,10 @@
 
           <h3>Detailed Examples</h3>
 
+          <h4>Initialize the default configuration file</h4>
+          <pre><code>code-to-prompt init</code><button class="copy-button" data-copy="code-to-prompt init"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
+          <p class="command-note">Creates the default <code>config.json</code> in the XDG config directory if it doesn't exist.</p>
+
           <h4>1. Process all non-ignored files in the current directory</h4>
           <pre><code>code-to-prompt .</code><button class="copy-button" data-copy="code-to-prompt ."><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
 
@@ -881,20 +897,37 @@ code-to-prompt ./src ./tests --markdown -o prompt.md</code><button class="copy-b
   README.md \
   LICENSE \
   ./src/types \
-  ./assets</code><button class="copy-button" data-copy="code-to-prompt \\
-  --markdown \\
-  --line-numbers \\
-  --ignore \"*.snap\" \\
-  --ignore \"dist/**\" \\
-  -o specific-prompt.md \\
-  src/index.ts \\
-  src/lib/printers.ts \\
-  src/lib/fileTree.ts \\
-  tests/e2e/cli.test.ts \\
-  README.md \\
-  LICENSE \\
-  ./src/types \\
-  ./assets"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
+  ./assets</code><button class="copy-button" data-copy='code-to-prompt \\\n  --markdown \\\n  --line-numbers \\\n  --ignore \"*.snap\" \\\n  --ignore \"dist/**\" \\\n  -o specific-prompt.md \\\n  src/index.ts \\\n  src/lib/printers.ts \\\n  src/lib/fileTree.ts \\\n  tests/e2e/cli.test.ts \\\n  README.md \\\n  LICENSE \\\n  ./src/types \\\n  ./assets'><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
+        </div>
+
+        <div class="card">
+          <h2 class="section-title">Configuration File (config.json)</h2>
+          <p>
+            Customize default behavior using a <code>config.json</code> file in the standard XDG config directory (e.g., <code>~/.config/code-to-prompt/config.json</code> on Linux/macOS, or respecting <code>$XDG_CONFIG_HOME</code>).
+          </p>
+          <p>Create a default file using the <code>init</code> command:</p>
+          <pre><code>code-to-prompt init</code><button class="copy-button" data-copy="code-to-prompt init"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
+          <p>Options are prioritized: Command-line flags > <code>config.json</code> values > Built-in defaults.</p>
+          <p>If the default configuration file is found and loaded, an informational message will be printed to stderr, like: <br><code>ℹ️ Loaded configuration from default path: /path/to/.config/code-to-prompt/config.json</code></p>
+          <h4>Example Default config.json:</h4>
+          <pre><code class="language-json">{
+  "ignore": [
+    "**/node_modules/**",
+    "*.log",
+    "package-lock.json",
+    "coverage/**",
+    ".git/**",
+    ".DS_Store"
+  ],
+  "include-hidden": false,
+  "line-numbers": false,
+  "markdown": false,
+  "cxml": false,
+  "include-binary": false,
+  "tree": false
+}</code><button class="copy-button" data-copy='{\n  "ignore": [\n    "**/node_modules/**",\n    "*.log",\n    "package-lock.json",\n    "coverage/**",\n    ".git/**",\n    ".DS_Store"\n  ],\n  "include-hidden": false,\n  "line-numbers": false,\n  "markdown": false,\n  "cxml": false,\n  "include-binary": false,\n  "tree": false\n}'><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
+          <p>Edit this file to change your default settings (e.g., set <code>"markdown": true</code>).</p>
+          <p>You can also specify a custom configuration file path using the <code>--config</code> flag.</p>
         </div>
 
         <div class="card">
