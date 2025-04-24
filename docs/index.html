@@ -822,6 +822,12 @@
                   <td><code>false</code></td>
                 </tr>
                 <tr>
+                  <td><code>--clipboard</code></td>
+                  <td><code>-C</code></td>
+                  <td>Copy the output directly to the system clipboard. Conflicts with <code>-o</code>.</td>
+                  <td><code>false</code></td>
+                </tr>
+                <tr>
                   <td><code>--null</code></td>
                   <td><code>-0</code></td>
                   <td>Use NUL (<code>\0</code>) character as separator when reading paths from stdin.</td>
@@ -904,6 +910,10 @@ code-to-prompt ./src ./tests --markdown -o prompt.md</code><button class="copy-b
   LICENSE \
   ./src/types \
   ./assets</code><button class="copy-button" data-copy='code-to-prompt \\\n  --markdown \\\n  --line-numbers \\\n  --ignore \"*.snap\" \\\n  --ignore \"dist/**\" \\\n  -o specific-prompt.md \\\n  src/index.ts \\\n  src/lib/printers.ts \\\n  src/lib/fileTree.ts \\\n  tests/e2e/cli.test.ts \\\n  README.md \\\n  LICENSE \\\n  ./src/types \\\n  ./assets'><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
+
+          <h4>11. Process files and copy the result directly to the clipboard</h4>
+          <pre><code>code-to-prompt ./src -e .ts --markdown -C</code><button class="copy-button" data-copy="code-to-prompt ./src -e .ts --markdown -C"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copy</button></pre>
+          <p class="command-note">This processes TypeScript files in `src`, formats the output as Markdown, and copies the entire result to the system clipboard instead of printing it to standard output or a file.</p>
         </div>
 
         <div class="card">

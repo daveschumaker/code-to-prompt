@@ -383,6 +383,13 @@ async function readPathsFromStdin(
         default: false,
         description: 'Add line numbers'
       })
+      .option('clipboard', { // Add this block
+        alias: 'C',
+        type: 'boolean',
+        description: 'Copy the output directly to the system clipboard.',
+        default: false,
+        conflicts: 'output', // Cannot use --clipboard and --output together
+      })
       .option('null', {
         alias: '0',
         type: 'boolean',
