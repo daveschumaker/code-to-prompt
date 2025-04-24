@@ -115,6 +115,7 @@ find ./src -name "*.ts" -print0 | code-to-prompt -0
 | Option                | Alias | Description                                                                            | Default       |
 | --------------------- | ----- | -------------------------------------------------------------------------------------- | ------------- |
 | `paths...`            |       | Input file or directory paths (reads from stdin if no paths given).                    |               |
+| `--config`            |       | Path to configuration file.                                                            | `~/.config/code-to-prompt/config.json` (or XDG equivalent) |
 | `--extension`         | `-e`  | File extension(s) to include (e.g., `-e .ts -e .js`). Can be repeated.                 | (Include all) |
 | `--include-hidden`    |       | Include hidden files and folders (those starting with `.`).                            | `false`       |
 | `--include-binary`    |       | Include binary files (images, executables, etc.).                                      | `false`       |
@@ -205,6 +206,29 @@ code-to-prompt \
   LICENSE \
   ./src/types \
   ./assets
+```
+
+## Configuration
+
+`code-to-prompt` can be configured using a JSON file located at the standard XDG config directory:
+
+- Linux/macOS: `~/.config/code-to-prompt/config.json`
+- Windows: `%LOCALAPPDATA%\code-to-prompt\config.json` (or equivalent)
+
+You can create a default configuration file using the `init` command:
+
+```bash
+code-to-prompt init
+```
+
+This will create the file with default settings, which you can then customize. Available options in the config file mirror the command-line flags (use the long-form name, e.g., `"include-hidden": true`).
+
+**Precedence:** Command-line flags will always override settings found in the configuration file.
+
+You can also specify a custom configuration file path using the `--config` flag:
+
+```bash
+code-to-prompt --config ./my-project-config.json .
 ```
 
 ## Development
