@@ -171,14 +171,15 @@ describe('CLI End-to-End Tests', () => {
       if (endOfFolderStructureLine === -1) throw new Error("No newline after 'Folder structure:' line");
 
       // Now search for the first '---' delimiter *after* the end of that line + the root path line
-      const firstDelimiter = '---\n';
+      const firstDelimiter = '---'; // No newline here
       // Start searching *after* the newline following "Folder structure:"
       const firstDelimiterIndex = normalizedStdout.indexOf(firstDelimiter, endOfFolderStructureLine + 1);
       if (firstDelimiterIndex === -1) {
           console.error("DEBUG: Stdout near Folder Structure:\n", normalizedStdout.substring(folderStructureIndex, folderStructureIndex + 150));
-          throw new Error("Missing first '---' after folder structure line");
+          throw new Error("Missing first '---' delimiter after folder structure line");
       }
-      const treeStartIndex = firstDelimiterIndex + firstDelimiter.length;
+      // Start index is after the '---' and the newline that follows it
+      const treeStartIndex = firstDelimiterIndex + firstDelimiter.length + 1;
 
       // Find the *next* '---' line which marks the end of the tree block
       const secondDelimiter = '\n---\n'; // Looking for newline *before* the delimiter
@@ -261,14 +262,15 @@ describe('CLI End-to-End Tests', () => {
       if (endOfFolderStructureLine === -1) throw new Error("No newline after 'Folder structure:' line");
 
       // Now search for the first '---' delimiter *after* the end of that line + the root path line
-      const firstDelimiter = '---\n';
+      const firstDelimiter = '---'; // No newline here
       // Start searching *after* the newline following "Folder structure:"
       const firstDelimiterIndex = normalizedStdout.indexOf(firstDelimiter, endOfFolderStructureLine + 1);
       if (firstDelimiterIndex === -1) {
           console.error("DEBUG: Stdout near Folder Structure:\n", normalizedStdout.substring(folderStructureIndex, folderStructureIndex + 150));
-          throw new Error("Missing first '---' after folder structure line");
+          throw new Error("Missing first '---' delimiter after folder structure line");
       }
-      const treeStartIndex = firstDelimiterIndex + firstDelimiter.length;
+      // Start index is after the '---' and the newline that follows it
+      const treeStartIndex = firstDelimiterIndex + firstDelimiter.length + 1;
 
       // Find the *next* '---' line which marks the end of the tree block
       const secondDelimiter = '\n---\n'; // Looking for newline *before* the delimiter
@@ -459,14 +461,15 @@ describe('CLI End-to-End Tests', () => {
     if (endOfFolderStructureLine === -1) throw new Error("No newline after 'Folder structure:' line");
 
     // Now search for the first '---' delimiter *after* the end of that line + the root path line
-    const firstDelimiter = '---\n';
+    const firstDelimiter = '---'; // No newline here
      // Start searching *after* the newline following "Folder structure:"
     const firstDelimiterIndex = out.indexOf(firstDelimiter, endOfFolderStructureLine + 1);
      if (firstDelimiterIndex === -1) {
          console.error("DEBUG: Stdout near Folder Structure:\n", out.substring(folderStructureIndex, folderStructureIndex + 150));
-         throw new Error("Missing first '---' after folder structure line");
+         throw new Error("Missing first '---' delimiter after folder structure line");
      }
-    const treeStartIndex = firstDelimiterIndex + firstDelimiter.length;
+    // Start index is after the '---' and the newline that follows it
+    const treeStartIndex = firstDelimiterIndex + firstDelimiter.length + 1;
 
     // Find the *next* '---' line which marks the end of the tree block
     const secondDelimiter = '\n---\n'; // Looking for newline *before* the delimiter
