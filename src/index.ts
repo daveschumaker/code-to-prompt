@@ -18,7 +18,12 @@ import os from 'os'; // Import os module
 import { printPath, Writer } from './lib/printers';
 import { generateFileTree, FileTreeOptions } from './lib/fileTree';
 import { BINARY_FILE_EXTENSIONS } from './lib/constants';
-import { getXdgConfigPath, loadConfig, initConfig, DebugLogger } from './lib/config'; // Import config functions
+import {
+  getXdgConfigPath,
+  loadConfig,
+  initConfig,
+  DebugLogger
+} from './lib/config'; // Import config functions
 
 // --- Helper Functions ---
 
@@ -32,16 +37,16 @@ function findCommonAncestor(paths: string[]): string {
   if (paths.length === 1) {
     // If it's a file, return its directory, otherwise the path itself
     try {
-        // Use sync stat here as it's simpler logic for this helper
-        const stats = fs.statSync(paths[0]);
-        return stats.isDirectory() ? paths[0] : path.dirname(paths[0]);
+      // Use sync stat here as it's simpler logic for this helper
+      const stats = fs.statSync(paths[0]);
+      return stats.isDirectory() ? paths[0] : path.dirname(paths[0]);
     } catch {
-        // If stat fails, fallback to dirname
-        return path.dirname(paths[0]);
+      // If stat fails, fallback to dirname
+      return path.dirname(paths[0]);
     }
   }
 
-  const pathComponents = paths.map(p => p.split(path.sep).filter(Boolean)); // Split and remove empty strings
+  const pathComponents = paths.map((p) => p.split(path.sep).filter(Boolean)); // Split and remove empty strings
 
   let commonAncestorComponents: string[] = [];
   const firstPathComponents = pathComponents[0];
@@ -49,7 +54,7 @@ function findCommonAncestor(paths: string[]): string {
   for (let i = 0; i < firstPathComponents.length; i++) {
     const component = firstPathComponents[i];
     // Check if this component exists in the same position in all other paths
-    if (pathComponents.every(p => p.length > i && p[i] === component)) {
+    if (pathComponents.every((p) => p.length > i && p[i] === component)) {
       commonAncestorComponents.push(component);
     } else {
       break; // Stop at the first mismatch
@@ -64,7 +69,6 @@ function findCommonAncestor(paths: string[]): string {
   // Or if it's just the root separator, return that.
   return commonPath || rootSeparator || process.cwd(); // Fallback to CWD if truly no commonality
 }
-
 
 // --- Core Logic ---
 
@@ -155,11 +159,13 @@ async function processPath(
     // Check for binary files first
     const fileExt = path.extname(targetPath).toLowerCase();
     const isBinaryFile = BINARY_FILE_EXTENSIONS.includes(fileExt);
-    
+
     options.debug(
-      chalk.cyan(`Checking binary status: ${baseName} (ext: ${fileExt}, isBinary: ${isBinaryFile}, includeBinary: ${options.includeBinaryFiles})`)
+      chalk.cyan(
+        `Checking binary status: ${baseName} (ext: ${fileExt}, isBinary: ${isBinaryFile}, includeBinary: ${options.includeBinaryFiles})`
+      )
     );
-    
+
     if (isBinaryFile && !options.includeBinaryFiles) {
       options.debug(
         chalk.yellow(`Skipping binary file: ${baseName} (ext: ${fileExt})`)
@@ -277,21 +283,27 @@ async function readPathsFromStdin(
   // --- Early setup for Debug Logger (needed for config loading) ---
   // We parse verbose flag early, or assume false if it's not present yet
   const preliminaryArgs = process.argv.slice(2); // Get args excluding node and script name
-  const isVerbose = preliminaryArgs.includes('--verbose') || preliminaryArgs.includes('-V');
+  const isVerbose =
+    preliminaryArgs.includes('--verbose') || preliminaryArgs.includes('-V');
   const debug: DebugLogger = (msg: string) => {
     if (isVerbose) console.error(msg);
   };
 
   // --- Determine Config Path ---
   // Check if --config is provided, otherwise use default
-  let configPathArgIndex = preliminaryArgs.findIndex(arg => arg === '--config');
+  let configPathArgIndex = preliminaryArgs.findIndex(
+    (arg) => arg === '--config'
+  );
   let configPath: string;
-  if (configPathArgIndex !== -1 && preliminaryArgs.length > configPathArgIndex + 1) {
-      configPath = path.resolve(preliminaryArgs[configPathArgIndex + 1]); // Resolve custom path
-      debug(chalk.blue(`Using custom config path from argument: ${configPath}`));
+  if (
+    configPathArgIndex !== -1 &&
+    preliminaryArgs.length > configPathArgIndex + 1
+  ) {
+    configPath = path.resolve(preliminaryArgs[configPathArgIndex + 1]); // Resolve custom path
+    debug(chalk.blue(`Using custom config path from argument: ${configPath}`));
   } else {
-      configPath = getXdgConfigPath(); // Get default XDG path
-      debug(chalk.blue(`Using default config path: ${configPath}`));
+    configPath = getXdgConfigPath(); // Get default XDG path
+    debug(chalk.blue(`Using default config path: ${configPath}`));
   }
 
   try {
@@ -320,12 +332,12 @@ async function readPathsFromStdin(
         type: 'string',
         description: `Path to configuration file. Defaults to ${getXdgConfigPath()}`,
         default: configPath, // Use the determined path as default
-        normalize: true, // Resolve the path
+        normalize: true // Resolve the path
       })
       .config('config', (cfgPath) => {
-          // Use the loadConfig function as the parser
-          // cfgPath is the path determined by yargs (default or from --config flag)
-          return loadConfig(cfgPath, debug);
+        // Use the loadConfig function as the parser
+        // cfgPath is the path determined by yargs (default or from --config flag)
+        return loadConfig(cfgPath, debug);
       })
       .option('extension', {
         alias: 'e',
@@ -386,12 +398,13 @@ async function readPathsFromStdin(
         default: false,
         description: 'Add line numbers'
       })
-      .option('clipboard', { // Add this block
+      .option('clipboard', {
+        // Add this block
         alias: 'C',
         type: 'boolean',
         description: 'Copy the output directly to the system clipboard.',
         default: false,
-        conflicts: 'output', // Cannot use --clipboard and --output together
+        conflicts: 'output' // Cannot use --clipboard and --output together
       })
       .option('null', {
         alias: '0',
@@ -424,11 +437,10 @@ async function readPathsFromStdin(
     // Re-assign debug based on final parsed argv, in case config file set verbose
     const finalVerbose = argv.verbose ?? false;
     const finalDebug: DebugLogger = (msg: string) => {
-        if (finalVerbose) console.error(msg);
+      if (finalVerbose) console.error(msg);
     };
     // Use finalDebug from now on
     finalDebug(chalk.magenta('Verbose logging enabled.'));
-
 
     const stats = { foundFiles: 0, skippedFiles: 0 };
 
@@ -448,16 +460,19 @@ async function readPathsFromStdin(
     // CLI flags take precedence over config file values.
     // Default values are used if neither CLI nor config provides them.
 
-    const cliPaths = (argv._ as string[]).filter(arg => arg !== 'init') || []; // Exclude 'init' command from paths
+    const cliPaths = (argv._ as string[]).filter((arg) => arg !== 'init') || []; // Exclude 'init' command from paths
     const stdinPaths = await readPathsFromStdin(argv.null ?? false);
     const allPaths = [...cliPaths, ...stdinPaths];
 
     // Check if paths are needed (they aren't for 'init', which exits earlier)
-    if (allPaths.length === 0 && argv._[0] !== 'init') { // Check command name if needed
-        console.error(
-            chalk.yellow('No input paths provided. Use --help for usage or `code-to-prompt init` to create a config.')
-        );
-        process.exit(1);
+    if (allPaths.length === 0 && argv._[0] !== 'init') {
+      // Check command name if needed
+      console.error(
+        chalk.yellow(
+          'No input paths provided. Use --help for usage or `code-to-prompt init` to create a config.'
+        )
+      );
+      process.exit(1);
     }
 
     // Normalize extensions from the final argv (merged config + flags)
@@ -468,7 +483,9 @@ async function readPathsFromStdin(
           ? [argv.extension]
           : []
     ).map((ext) => (ext.startsWith('.') ? ext : '.' + ext));
-    finalDebug(chalk.blue(`Using extensions: ${extensions.join(', ') || 'None'}`));
+    finalDebug(
+      chalk.blue(`Using extensions: ${extensions.join(', ') || 'None'}`)
+    );
 
     // Get ignore patterns from the final argv
     const ignorePatterns: string[] = Array.isArray(argv.ignore)
@@ -476,18 +493,44 @@ async function readPathsFromStdin(
       : argv.ignore
         ? [argv.ignore]
         : [];
-    finalDebug(chalk.blue(`Using custom ignore patterns: ${ignorePatterns.join(', ') || 'None'}`));
+    finalDebug(
+      chalk.blue(
+        `Using custom ignore patterns: ${ignorePatterns.join(', ') || 'None'}`
+      )
+    );
 
     // Check for mutually exclusive format flags
     if (argv.cxml && argv.markdown) {
-      throw new Error('--cxml and --markdown are mutually exclusive. Check config file and flags.');
+      throw new Error(
+        '--cxml and --markdown are mutually exclusive. Check config file and flags.'
+      );
     }
-    finalDebug(chalk.blue(`Output format: ${argv.cxml ? 'Claude XML' : argv.markdown ? 'Markdown' : 'Default'}`));
-    finalDebug(chalk.blue(`Line numbers: ${argv['line-numbers'] ? 'Enabled' : 'Disabled'}`));
-    finalDebug(chalk.blue(`Include hidden: ${argv['include-hidden'] ? 'Yes' : 'No'}`));
-    finalDebug(chalk.blue(`Include binary: ${argv['include-binary'] ? 'Yes' : 'No'}`));
-    finalDebug(chalk.blue(`Ignore files only: ${argv['ignore-files-only'] ? 'Yes' : 'No'}`));
-    finalDebug(chalk.blue(`Ignore .gitignore: ${argv['ignore-gitignore'] ? 'Yes' : 'No'}`));
+    finalDebug(
+      chalk.blue(
+        `Output format: ${argv.cxml ? 'Claude XML' : argv.markdown ? 'Markdown' : 'Default'}`
+      )
+    );
+    finalDebug(
+      chalk.blue(
+        `Line numbers: ${argv['line-numbers'] ? 'Enabled' : 'Disabled'}`
+      )
+    );
+    finalDebug(
+      chalk.blue(`Include hidden: ${argv['include-hidden'] ? 'Yes' : 'No'}`)
+    );
+    finalDebug(
+      chalk.blue(`Include binary: ${argv['include-binary'] ? 'Yes' : 'No'}`)
+    );
+    finalDebug(
+      chalk.blue(
+        `Ignore files only: ${argv['ignore-files-only'] ? 'Yes' : 'No'}`
+      )
+    );
+    finalDebug(
+      chalk.blue(
+        `Ignore .gitignore: ${argv['ignore-gitignore'] ? 'Yes' : 'No'}`
+      )
+    );
     finalDebug(chalk.blue(`Generate tree: ${argv.tree ? 'Yes' : 'No'}`));
 
     // --- Setup Writer ---
@@ -497,7 +540,9 @@ async function readPathsFromStdin(
     const useClipboard = argv.clipboard as boolean; // Check the clipboard flag
 
     if (useClipboard) {
-      finalDebug(chalk.blue('Clipboard output mode enabled. Buffering output.'));
+      finalDebug(
+        chalk.blue('Clipboard output mode enabled. Buffering output.')
+      );
       outputBuffer = '';
       writer = (text: string) => {
         // Append to buffer and add a newline, as printers call writer per logical line.
@@ -506,14 +551,16 @@ async function readPathsFromStdin(
         }
       };
     } else if (argv.output) {
-      finalDebug(chalk.blue(`File output mode enabled. Writing to: ${argv.output}`));
+      finalDebug(
+        chalk.blue(`File output mode enabled. Writing to: ${argv.output}`)
+      );
       try {
         // Ensure directory exists and is writable (moved check here)
         await fsp.mkdir(path.dirname(argv.output), { recursive: true });
         await fsp.access(path.dirname(argv.output), fs.constants.W_OK);
 
         fileStream = fs.createWriteStream(argv.output, { encoding: 'utf-8' });
-        writer = (text: string) => fileStream!.write(text); // Write directly, printers add newlines
+        writer = (text: string) => fileStream!.write(text + '\n'); // Write directly, printers add newlines
       } catch (error: unknown) {
         const msg = error instanceof Error ? error.message : String(error);
         throw new Error(`Cannot write to output file ${argv.output}: ${msg}`);
@@ -521,7 +568,7 @@ async function readPathsFromStdin(
     } else {
       finalDebug(chalk.blue('Standard output mode enabled.'));
       // Default writer to stdout
-      writer = (text: string) => process.stdout.write(text); // Use process.stdout.write for direct control
+      writer = (text: string) => process.stdout.write(text + '\n'); // Use process.stdout.write for direct control
     }
 
     // --- Prepare base paths ---
@@ -548,7 +595,8 @@ async function readPathsFromStdin(
           .map((line) => line.trim())
           .filter((line) => line && !line.startsWith('#'));
         if (rules.length > 0) {
-          finalDebug( // Use finalDebug here
+          finalDebug(
+            // Use finalDebug here
             chalk.blue(
               `Initializing ignore patterns from ${gitignorePath} with ${rules.length} rules.`
             )
@@ -569,37 +617,48 @@ async function readPathsFromStdin(
       } catch (error: unknown) {
         const err = error as ErrnoException;
         if (err.code === 'ENOENT') {
-          finalDebug(chalk.yellow(`No .gitignore file found at ${baseIgnorePath}.`)); // Use finalDebug here
+          finalDebug(
+            chalk.yellow(`No .gitignore file found at ${baseIgnorePath}.`)
+          ); // Use finalDebug here
         } else {
-          finalDebug(chalk.yellow(`Could not read main .gitignore: ${err.message}`)); // Use finalDebug here
+          finalDebug(
+            chalk.yellow(`Could not read main .gitignore: ${err.message}`)
+          ); // Use finalDebug here
         }
       }
     } else {
-      finalDebug( // Use finalDebug here
+      finalDebug(
+        // Use finalDebug here
         chalk.yellow(`Ignoring .gitignore file due to --ignore-gitignore flag.`)
       );
     }
 
     // --- Process Paths ---
-    const absolutePaths = allPaths.map(p => path.resolve(p)); // Resolve all paths first
+    const absolutePaths = allPaths.map((p) => path.resolve(p)); // Resolve all paths first
 
     if (argv.tree) {
       // Calculate the common ancestor directory for the tree root
       const treeDisplayRoot = findCommonAncestor(absolutePaths);
-      finalDebug(chalk.blue(`Tree display root calculated as: ${treeDisplayRoot}`)); // Use finalDebug
+      finalDebug(
+        chalk.blue(`Tree display root calculated as: ${treeDisplayRoot}`)
+      ); // Use finalDebug
 
       writer('Folder structure:');
       writer(treeDisplayRoot + path.sep); // Use the common ancestor display root
       writer('---');
       // Pass the calculated treeDisplayRoot as baseIgnorePath *for tree generation only*
-      finalDebug(chalk.blue(`Setting up tree options. Include binary: ${argv['include-binary'] ?? false}`)); // Use finalDebug
+      finalDebug(
+        chalk.blue(
+          `Setting up tree options. Include binary: ${argv['include-binary'] ?? false}`
+        )
+      ); // Use finalDebug
       const treeOptions: FileTreeOptions = {
-          baseIgnorePath: treeDisplayRoot, // Use the correct root for tree display
-          mainIg, // .gitignore rules
-          includeHidden: argv['include-hidden'] ?? false,
-          includeBinaryFiles: argv['include-binary'] ?? false,
-          ignorePatterns,   // CLI --ignore patterns
-          ignoreFilesOnly: argv['ignore-files-only'] ?? false  // apply ignore only to files if set
+        baseIgnorePath: treeDisplayRoot, // Use the correct root for tree display
+        mainIg, // .gitignore rules
+        includeHidden: argv['include-hidden'] ?? false,
+        includeBinaryFiles: argv['include-binary'] ?? false,
+        ignorePatterns, // CLI --ignore patterns
+        ignoreFilesOnly: argv['ignore-files-only'] ?? false // apply ignore only to files if set
       };
       const treeStr = await generateFileTree(absolutePaths, treeOptions);
       writer(treeStr.trimEnd());
@@ -669,7 +728,9 @@ async function readPathsFromStdin(
           const now = new Date();
           await fsp.utimes(argv.output, now, now);
         } catch (error) {
-          finalDebug(chalk.yellow(`Could not update modification time of ${argv.output}`));
+          finalDebug(
+            chalk.yellow(`Could not update modification time of ${argv.output}`)
+          );
         }
       }
     } else if (useClipboard && outputBuffer !== null) {
