@@ -45,7 +45,12 @@ export async function processPath(
   }
 
   const baseName = path.basename(targetPath);
-  const relativePath = path.relative(options.baseIgnorePath, targetPath);
+  // Calculate relative path *once* for use in ignore checks
+  // Ensure it's never empty for root-level checks by using '.' if needed
+  let relativePath = path.relative(options.baseIgnorePath, targetPath);
+  if (relativePath === '') {
+    relativePath = '.'; // Use '.' to represent the base path itself for ignore checks
+  }
 
   // --- Filter Section (Common for Files and Dirs) ---
 
@@ -55,22 +60,27 @@ export async function processPath(
     return;
   }
 
+  // Check .gitignore rules (using the calculated relative path)
   let isIgnoredByGitignore = false;
-  if (relativePath) {
-    // <-- Only check if relativePath is NOT empty
-    try {
-      isIgnoredByGitignore = options.mainIg.ignores(relativePath);
-    } catch {
-      isIgnoredByGitignore = false;
-    }
+  try {
+    // Use the potentially adjusted relativePath (e.g., '.')
+    isIgnoredByGitignore = options.mainIg.ignores(relativePath);
+  } catch (e) {
+    // Ignore errors from the ignore library (e.g., on absolute paths outside base)
+    options.debug(
+      chalk.red(
+        `Error checking gitignore for ${relativePath}: ${
+          e instanceof Error ? e.message : String(e)
+        }`
+      )
+    );
+    isIgnoredByGitignore = false;
   }
-  // Now use the result of the check
+
   if (isIgnoredByGitignore) {
     options.debug(
       chalk.yellow(
-        `    Skipping due to ignore rules: ${baseName} (path: ${
-          relativePath || '<root>'
-        })`
+        `    Skipping due to ignore rules: ${baseName} (relative: ${relativePath})`
       )
     );
     return;
@@ -81,9 +91,14 @@ export async function processPath(
     options.debug(chalk.cyan(`Path is a file. Checking filters...`));
 
     // Filter custom ignore patterns (--ignore) applied to files
+    // Use the original relativePath for minimatch comparison
+    const minimatchRelativePath = path.relative(
+      options.baseIgnorePath,
+      targetPath
+    );
     if (
       options.ignorePatterns.some((pattern) =>
-        minimatch(relativePath, pattern, { dot: true })
+        minimatch(minimatchRelativePath, pattern, { dot: true })
       )
     ) {
       options.debug(
@@ -144,6 +159,8 @@ export async function processPath(
       const errMsg = error instanceof Error ? error.message : String(error);
       const warningMessage = `Warning: Skipping file ${targetPath} due to read error: ${errMsg}`;
       console.error(chalk.yellow(warningMessage));
+      // Optionally increment skippedFiles here if read errors should count as skipped
+      // options.stats.skippedFiles++;
     }
     return; // Done processing the file
   }
@@ -151,15 +168,21 @@ export async function processPath(
   // --- Process Directory ---
   if (stats.isDirectory()) {
     // Filter custom ignore patterns applied to directories (if not --ignore-files-only)
+    // Use the original relativePath for minimatch comparison
+    const minimatchRelativePath = path.relative(
+      options.baseIgnorePath,
+      targetPath
+    );
     if (
       !options.ignoreFilesOnly &&
       options.ignorePatterns.some((pattern) =>
-        minimatch(relativePath, pattern, { dot: true })
+        minimatch(minimatchRelativePath, pattern, { dot: true })
       )
     ) {
       options.debug(
         chalk.yellow(`Skipping directory due to --ignore pattern: ${baseName}`)
       );
+      // Note: We don't increment skippedFiles for directories, only files.
       return; // Skip directory if it matches an ignore pattern
     }
 
