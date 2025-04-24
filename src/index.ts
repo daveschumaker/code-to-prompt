@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 
 // src/index.ts
+#!/usr/bin/env node
 
+// src/index.ts
+
+import clipboardy from 'clipboardy'; // Add this line
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import fs from 'fs'; // Node's File System module
@@ -488,17 +492,37 @@ async function readPathsFromStdin(
     finalDebug(chalk.blue(`Generate tree: ${argv.tree ? 'Yes' : 'No'}`));
 
     // --- Setup Writer ---
-    let writer: Writer = console.log;
+    let writer: Writer;
+    let outputBuffer: string | null = null; // Buffer for clipboard content
     let fileStream: fs.WriteStream | null = null;
-    if (argv.output) {
+    const useClipboard = argv.clipboard as boolean; // Check the clipboard flag
+
+    if (useClipboard) {
+      finalDebug(chalk.blue('Clipboard output mode enabled. Buffering output.'));
+      outputBuffer = '';
+      writer = (text: string) => {
+        // Append to buffer, assuming printers add their own newlines
+        if (outputBuffer !== null) {
+          outputBuffer += text;
+        }
+      };
+    } else if (argv.output) {
+      finalDebug(chalk.blue(`File output mode enabled. Writing to: ${argv.output}`));
       try {
+        // Ensure directory exists and is writable (moved check here)
+        await fsp.mkdir(path.dirname(argv.output), { recursive: true });
         await fsp.access(path.dirname(argv.output), fs.constants.W_OK);
+
         fileStream = fs.createWriteStream(argv.output, { encoding: 'utf-8' });
-        writer = (text: string) => fileStream!.write(text + '\n');
+        writer = (text: string) => fileStream!.write(text); // Write directly, printers add newlines
       } catch (error: unknown) {
         const msg = error instanceof Error ? error.message : String(error);
         throw new Error(`Cannot write to output file ${argv.output}: ${msg}`);
       }
+    } else {
+      finalDebug(chalk.blue('Standard output mode enabled.'));
+      // Default writer to stdout
+      writer = (text: string) => process.stdout.write(text); // Use process.stdout.write for direct control
     }
 
     // --- Prepare base paths ---
@@ -626,23 +650,43 @@ async function readPathsFromStdin(
       writer('</documents>');
     }
 
-    // --- Cleanup ---
+    // --- Final Output Handling ---
     if (fileStream) {
-      await new Promise<void>((resolve) => {
-        fileStream!.end(() => resolve());
+      // Close the file stream if it exists
+      await new Promise<void>((resolve, reject) => {
+        fileStream!.end((err?: Error | null) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
       });
-      
+      finalDebug(chalk.green(`Output successfully written to ${argv.output}`));
+
       // Update the modification time of the output file
       if (argv.output) {
         try {
           const now = new Date();
           await fsp.utimes(argv.output, now, now);
         } catch (error) {
-          finalDebug(chalk.yellow(`Could not update modification time of ${argv.output}`)); // Use finalDebug
+          finalDebug(chalk.yellow(`Could not update modification time of ${argv.output}`));
         }
+      }
+    } else if (useClipboard && outputBuffer !== null) {
+      // Write to clipboard if clipboard mode was used
+      try {
+        await clipboardy.write(outputBuffer);
+        // Log success to stderr since stdout isn't used for primary output in clipboard mode
+        console.error(chalk.green('Output successfully copied to clipboard.'));
+      } catch (err) {
+        console.error(chalk.red('Error copying to clipboard:'), err);
+        // Optionally: Fallback to printing to stdout if clipboard fails?
+        // process.stdout.write(outputBuffer);
       }
     }
 
+    // --- Statistics Logging (Keep this after output handling) ---
     // Print run statistics to terminal
     const endTime = Date.now();
     console.error(`\nStats:`);
