@@ -11,9 +11,11 @@ import { minimatch } from 'minimatch'; // Keep for --ignore patterns
 import chalk from 'chalk'; // For terminal colors like click.style
 import ignore, { Ignore } from 'ignore'; // Import the ignore library
 import type { ErrnoException, MaybeError } from './types';
+import os from 'os'; // Import os module
 import { printPath, Writer } from './lib/printers';
-import { generateFileTree, FileTreeOptions } from './lib/fileTree'; // Import FileTreeOptions
-import { BINARY_FILE_EXTENSIONS } from './lib/constants'; // Import binary file extensions list
+import { generateFileTree, FileTreeOptions } from './lib/fileTree';
+import { BINARY_FILE_EXTENSIONS } from './lib/constants';
+import { getXdgConfigPath, loadConfig, initConfig, DebugLogger } from './lib/config'; // Import config functions
 
 // --- Helper Functions ---
 
@@ -268,10 +270,60 @@ async function readPathsFromStdin(
 
 (async () => {
   const startTime = Date.now();
+
+  // --- Early setup for Debug Logger (needed for config loading) ---
+  // We parse verbose flag early, or assume false if it's not present yet
+  const preliminaryArgs = process.argv.slice(2); // Get args excluding node and script name
+  const isVerbose = preliminaryArgs.includes('--verbose') || preliminaryArgs.includes('-V');
+  const debug: DebugLogger = (msg: string) => {
+    if (isVerbose) console.error(msg);
+  };
+
+  // --- Determine Config Path ---
+  // Check if --config is provided, otherwise use default
+  let configPathArgIndex = preliminaryArgs.findIndex(arg => arg === '--config');
+  let configPath: string;
+  if (configPathArgIndex !== -1 && preliminaryArgs.length > configPathArgIndex + 1) {
+      configPath = path.resolve(preliminaryArgs[configPathArgIndex + 1]); // Resolve custom path
+      debug(chalk.blue(`Using custom config path from argument: ${configPath}`));
+  } else {
+      configPath = getXdgConfigPath(); // Get default XDG path
+      debug(chalk.blue(`Using default config path: ${configPath}`));
+  }
+
   try {
     // --- Yargs Argument Parsing Setup ---
     const argv = await yargs(hideBin(process.argv))
-      .usage('Usage: $0 [options] [paths...]')
+      .usage('Usage: $0 [command] [options] [paths...]')
+      // --- Commands ---
+      .command(
+        'init',
+        'Create a default configuration file (~/.config/code-to-prompt/config.json)',
+        (yargs) => {}, // No specific options for init command
+        async (argv) => {
+          // Handle the init command logic here
+          debug(chalk.blue('Executing init command...'));
+          try {
+            await initConfig(debug); // Call the init function
+            process.exit(0); // Exit successfully after init
+          } catch (error) {
+            console.error(chalk.red('Initialization failed.'));
+            process.exit(1); // Exit with error if init fails
+          }
+        }
+      )
+      // --- Options ---
+      .option('config', {
+        type: 'string',
+        description: `Path to configuration file. Defaults to ${getXdgConfigPath()}`,
+        default: configPath, // Use the determined path as default
+        normalize: true, // Resolve the path
+      })
+      .config('config', (cfgPath) => {
+          // Use the loadConfig function as the parser
+          // cfgPath is the path determined by yargs (default or from --config flag)
+          return loadConfig(cfgPath, debug);
+      })
       .option('extension', {
         alias: 'e',
         type: 'string',
@@ -357,13 +409,17 @@ async function readPathsFromStdin(
         'duplicate-arguments-array': true,
         'strip-aliased': true
       })
-      .parseAsync();
+      .parseAsync(); // Yargs parsing happens here
 
-    // Enable conditional debug logging
-    const verbose = argv.verbose ?? false;
-    const debug = (msg: string) => {
-      if (verbose) console.error(msg);
+    // Re-assign debug based on final parsed argv, in case config file set verbose
+    const finalVerbose = argv.verbose ?? false;
+    const finalDebug: DebugLogger = (msg: string) => {
+        if (finalVerbose) console.error(msg);
     };
+    // Use finalDebug from now on
+    finalDebug(chalk.magenta('Verbose logging enabled.'));
+
+
     const stats = { foundFiles: 0, skippedFiles: 0 };
 
     /**
@@ -378,30 +434,51 @@ async function readPathsFromStdin(
     }
 
     // --- Prepare Arguments and Options ---
-    const cliPaths = (argv._ as string[]) || [];
+    // Yargs automatically merges config file values with CLI flags.
+    // CLI flags take precedence over config file values.
+    // Default values are used if neither CLI nor config provides them.
+
+    const cliPaths = (argv._ as string[]).filter(arg => arg !== 'init') || []; // Exclude 'init' command from paths
     const stdinPaths = await readPathsFromStdin(argv.null ?? false);
     const allPaths = [...cliPaths, ...stdinPaths];
-    if (allPaths.length === 0) {
-      console.error(
-        chalk.yellow('No input paths provided. Use --help for usage.')
-      );
-      process.exit(1);
+
+    // Check if paths are needed (they aren't for 'init', which exits earlier)
+    if (allPaths.length === 0 && argv._[0] !== 'init') { // Check command name if needed
+        console.error(
+            chalk.yellow('No input paths provided. Use --help for usage or `code-to-prompt init` to create a config.')
+        );
+        process.exit(1);
     }
+
+    // Normalize extensions from the final argv (merged config + flags)
     const extensions: string[] = (
       Array.isArray(argv.extension)
         ? argv.extension
         : argv.extension
           ? [argv.extension]
           : []
-    ).map((ext) => (ext.startsWith('.') ? ext : '.' + ext)); // Normalize extensions
+    ).map((ext) => (ext.startsWith('.') ? ext : '.' + ext));
+    finalDebug(chalk.blue(`Using extensions: ${extensions.join(', ') || 'None'}`));
+
+    // Get ignore patterns from the final argv
     const ignorePatterns: string[] = Array.isArray(argv.ignore)
       ? argv.ignore
       : argv.ignore
         ? [argv.ignore]
         : [];
+    finalDebug(chalk.blue(`Using custom ignore patterns: ${ignorePatterns.join(', ') || 'None'}`));
+
+    // Check for mutually exclusive format flags
     if (argv.cxml && argv.markdown) {
-      throw new Error('--cxml and --markdown are mutually exclusive.');
+      throw new Error('--cxml and --markdown are mutually exclusive. Check config file and flags.');
     }
+    finalDebug(chalk.blue(`Output format: ${argv.cxml ? 'Claude XML' : argv.markdown ? 'Markdown' : 'Default'}`));
+    finalDebug(chalk.blue(`Line numbers: ${argv['line-numbers'] ? 'Enabled' : 'Disabled'}`));
+    finalDebug(chalk.blue(`Include hidden: ${argv['include-hidden'] ? 'Yes' : 'No'}`));
+    finalDebug(chalk.blue(`Include binary: ${argv['include-binary'] ? 'Yes' : 'No'}`));
+    finalDebug(chalk.blue(`Ignore files only: ${argv['ignore-files-only'] ? 'Yes' : 'No'}`));
+    finalDebug(chalk.blue(`Ignore .gitignore: ${argv['ignore-gitignore'] ? 'Yes' : 'No'}`));
+    finalDebug(chalk.blue(`Generate tree: ${argv.tree ? 'Yes' : 'No'}`));
 
     // --- Setup Writer ---
     let writer: Writer = console.log;
@@ -441,7 +518,7 @@ async function readPathsFromStdin(
           .map((line) => line.trim())
           .filter((line) => line && !line.startsWith('#'));
         if (rules.length > 0) {
-          debug(
+          finalDebug( // Use finalDebug here
             chalk.blue(
               `Initializing ignore patterns from ${gitignorePath} with ${rules.length} rules.`
             )
@@ -457,18 +534,18 @@ async function readPathsFromStdin(
             }
           };
         } else {
-          debug(chalk.yellow(`No rules found in ${gitignorePath}.`));
+          finalDebug(chalk.yellow(`No rules found in ${gitignorePath}.`)); // Use finalDebug here
         }
       } catch (error: unknown) {
         const err = error as ErrnoException;
         if (err.code === 'ENOENT') {
-          debug(chalk.yellow(`No .gitignore file found at ${baseIgnorePath}.`));
+          finalDebug(chalk.yellow(`No .gitignore file found at ${baseIgnorePath}.`)); // Use finalDebug here
         } else {
-          debug(chalk.yellow(`Could not read main .gitignore: ${err.message}`));
+          finalDebug(chalk.yellow(`Could not read main .gitignore: ${err.message}`)); // Use finalDebug here
         }
       }
     } else {
-      debug(
+      finalDebug( // Use finalDebug here
         chalk.yellow(`Ignoring .gitignore file due to --ignore-gitignore flag.`)
       );
     }
@@ -479,13 +556,13 @@ async function readPathsFromStdin(
     if (argv.tree) {
       // Calculate the common ancestor directory for the tree root
       const treeDisplayRoot = findCommonAncestor(absolutePaths);
-      debug(chalk.blue(`Tree display root calculated as: ${treeDisplayRoot}`));
+      finalDebug(chalk.blue(`Tree display root calculated as: ${treeDisplayRoot}`)); // Use finalDebug
 
       writer('Folder structure:');
       writer(treeDisplayRoot + path.sep); // Use the common ancestor display root
       writer('---');
       // Pass the calculated treeDisplayRoot as baseIgnorePath *for tree generation only*
-      debug(chalk.blue(`Setting up tree options. Include binary: ${argv['include-binary'] ?? false}`));
+      finalDebug(chalk.blue(`Setting up tree options. Include binary: ${argv['include-binary'] ?? false}`)); // Use finalDebug
       const treeOptions: FileTreeOptions = {
           baseIgnorePath: treeDisplayRoot, // Use the correct root for tree display
           mainIg, // .gitignore rules
@@ -530,7 +607,7 @@ async function readPathsFromStdin(
         mainIg, // Pass the ignore instance
         baseIgnorePath, // Pass the base path
         tree: argv.tree ?? false, // Whether to generate file tree
-        debug: debug,
+        debug: finalDebug, // Use finalDebug
         stats: stats,
         includeBinaryFiles: argv['include-binary'] ?? false
       };
@@ -554,7 +631,7 @@ async function readPathsFromStdin(
           const now = new Date();
           await fsp.utimes(argv.output, now, now);
         } catch (error) {
-          debug(chalk.yellow(`Could not update modification time of ${argv.output}`));
+          finalDebug(chalk.yellow(`Could not update modification time of ${argv.output}`)); // Use finalDebug
         }
       }
     }
