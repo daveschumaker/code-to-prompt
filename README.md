@@ -112,25 +112,25 @@ find ./src -name "*.ts" -print0 | code-to-prompt -0
 
 ### Options
 
-| Option                | Alias | Description                                                                            | Default       |
-| --------------------- | ----- | -------------------------------------------------------------------------------------- | ------------- |
-| `paths...`            |       | Input file or directory paths (reads from stdin if no paths given).                    |               |
+| Option                | Alias | Description                                                                            | Default                                                    |
+| --------------------- | ----- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `paths...`            |       | Input file or directory paths (reads from stdin if no paths given).                    |                                                            |
 | `--config`            |       | Path to configuration file.                                                            | `~/.config/code-to-prompt/config.json` (or XDG equivalent) |
-| `--extension`         | `-e`  | File extension(s) to include (e.g., `-e .ts -e .js`). Can be repeated.                 | (Include all) |
-| `--include-hidden`    |       | Include hidden files and folders (those starting with `.`).                            | `false`       |
-| `--include-binary`    |       | Include binary files (images, executables, etc.).                                      | `false`       |
-| `--ignore-files-only` |       | Makes `--ignore` patterns only apply to files, not directories.                        | `false`       |
-| `--ignore-gitignore`  |       | Ignore `.gitignore` files and include all files found.                                 | `false`       |
-| `--ignore`            |       | Glob pattern(s) to ignore using minimatch. Can be repeated (e.g., `--ignore "*.log"`). | `[]`          |
-| `--output`            | `-o`  | Output to a specified file instead of standard output.                                 | `stdout`      |
-| `--cxml`              | `-c`  | Output in Claude-friendly XML format. Mutually exclusive with `-m`.                    | `false`       |
-| `--markdown`          | `-m`  | Output in Markdown format with fenced code blocks. Mutually exclusive with `-c`.       | `false`       |
-| `--line-numbers`      | `-n`  | Add line numbers to the content of each file in the output.                            | `false`       |
-| `--null`              | `-0`  | Use NUL (`\0`) character as separator when reading paths from stdin.                   | `false`       |
-| `--tree`              |       | Prepend a file tree structure overview to the output.                                  | `false`       |
-| `--verbose`           | `-V`  | Enable verbose debug logging to stderr.                                                | `false`       |
-| `--help`              | `-h`  | Show help message.                                                                     |               |
-| `--version`           | `-v`  | Show version number.                                                                   |               |
+| `--extension`         | `-e`  | File extension(s) to include (e.g., `-e .ts -e .js`). Can be repeated.                 | (Include all)                                              |
+| `--include-hidden`    |       | Include hidden files and folders (those starting with `.`).                            | `false`                                                    |
+| `--include-binary`    |       | Include binary files (images, executables, etc.).                                      | `false`                                                    |
+| `--ignore-files-only` |       | Makes `--ignore` patterns only apply to files, not directories.                        | `false`                                                    |
+| `--ignore-gitignore`  |       | Ignore `.gitignore` files and include all files found.                                 | `false`                                                    |
+| `--ignore`            |       | Glob pattern(s) to ignore using minimatch. Can be repeated (e.g., `--ignore "*.log"`). | `[]`                                                       |
+| `--output`            | `-o`  | Output to a specified file instead of standard output.                                 | `stdout`                                                   |
+| `--cxml`              | `-c`  | Output in Claude-friendly XML format. Mutually exclusive with `-m`.                    | `false`                                                    |
+| `--markdown`          | `-m`  | Output in Markdown format with fenced code blocks. Mutually exclusive with `-c`.       | `false`                                                    |
+| `--line-numbers`      | `-n`  | Add line numbers to the content of each file in the output.                            | `false`                                                    |
+| `--null`              | `-0`  | Use NUL (`\0`) character as separator when reading paths from stdin.                   | `false`                                                    |
+| `--tree`              |       | Prepend a file tree structure overview to the output.                                  | `false`                                                    |
+| `--verbose`           | `-V`  | Enable verbose debug logging to stderr.                                                | `false`                                                    |
+| `--help`              | `-h`  | Show help message.                                                                     |                                                            |
+| `--version`           | `-v`  | Show version number.                                                                   |                                                            |
 
 ### Examples
 
