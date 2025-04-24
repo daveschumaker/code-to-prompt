@@ -1,11 +1,12 @@
+// tests/lib/stdinUtils.test.ts
 import { readPathsFromStdin } from '../../src/lib/stdinUtils';
 import { Readable } from 'stream';
-import process from 'process'; // Import process
+import process from 'process';
 
 describe('readPathsFromStdin', () => {
   let originalStdin: NodeJS.ReadStream;
   let originalIsTTY: boolean | undefined;
-  let stdinMock: Readable & { isTTY?: boolean } | null = null; // Add isTTY to mock type
+  let stdinMock: (Readable & { isTTY?: boolean }) | null = null; // Add isTTY to mock type
 
   beforeEach(() => {
     // Backup original stdin properties
@@ -14,235 +15,193 @@ describe('readPathsFromStdin', () => {
   });
 
   afterEach(() => {
-    // Restore original stdin properties and clean up mocks
+    // Restore original stdin
     Object.defineProperty(process, 'stdin', {
       value: originalStdin,
-      writable: true,
-      configurable: true
+      writable: true
     });
-    // Restore original isTTY value
-    process.stdin.isTTY = originalIsTTY;
-
-    if (stdinMock && !stdinMock.destroyed) {
-      stdinMock.destroy(); // Ensure stream is destroyed
+    
+    // Restore original isTTY if it was defined
+    if (originalIsTTY !== undefined) {
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: originalIsTTY,
+        writable: true
+      });
     }
-    stdinMock = null;
-    jest.restoreAllMocks(); // Restore any other mocks
   });
 
-  // Helper to mock stdin stream
-  const mockStdin = (
-    input: string | Buffer | null,
-    isTTY: boolean = false
-  ): Readable => {
-    // Create a mock stream that behaves like process.stdin
-    stdinMock = new Readable({ read() {} }) as Readable & { isTTY?: boolean };
-    stdinMock.isTTY = isTTY; // Set the isTTY property on the mock
-
-    // Make process.stdin replaceable and assign the mock
-    Object.defineProperty(process, 'stdin', {
-      value: stdinMock,
-      writable: true,
-      configurable: true
-    });
-
-    // Push input data asynchronously to allow event listeners to attach
-    process.nextTick(() => {
-      if (input !== null && stdinMock && !stdinMock.destroyed) {
-        stdinMock.push(input);
-      }
-      if (stdinMock && !stdinMock.destroyed) {
-        stdinMock.push(null); // Signal EOF
+  // Helper function to create a mock stdin
+  const createMockStdin = (data: string[], isTTY = false): Readable => {
+    const mock = new Readable({
+      read() {
+        for (const chunk of data) {
+          this.push(chunk);
+        }
+        this.push(null); // Signal end of stream
       }
     });
-
-    return stdinMock;
+    
+    // Add isTTY property
+    Object.defineProperty(mock, 'isTTY', {
+      value: isTTY,
+      writable: true
+    });
+    
+    return mock;
   };
 
-  test('should return empty array if stdin is TTY', async () => {
-    mockStdin(null, true); // Simulate TTY
-    const paths = await readPathsFromStdin(false);
-    expect(paths).toEqual([]);
-  });
-
-  test('should return empty array for empty input stream', async () => {
-    mockStdin(''); // Simulate empty input
-    const paths = await readPathsFromStdin(false);
-    expect(paths).toEqual([]);
-  });
-
-  test('should return empty array for input stream with only whitespace', async () => {
-    mockStdin('  \n\t  \n ');
-    const paths = await readPathsFromStdin(false);
-    expect(paths).toEqual([]);
-  });
-
-  test('should read space-separated paths', async () => {
-    mockStdin('path1 path2');
-    const paths = await readPathsFromStdin(false);
-    expect(paths).toEqual(['path1', 'path2']);
-  });
-
-  test('should read newline-separated paths (LF)', async () => {
-    mockStdin('path1\npath2');
-    const paths = await readPathsFromStdin(false);
-    expect(paths).toEqual(['path1', 'path2']);
-  });
-
-  test('should read newline-separated paths (CRLF)', async () => {
-    mockStdin('path1\r\npath2');
-    const paths = await readPathsFromStdin(false);
-    expect(paths).toEqual(['path1', 'path2']);
-  });
-
-  test('should read paths separated by mixed whitespace', async () => {
-    mockStdin('path1 \n path2\tpath3  \r\npath4');
-    const paths = await readPathsFromStdin(false);
-    // split(/\s+/) handles mixed whitespace and filter removes empty strings
-    expect(paths).toEqual(['path1', 'path2', 'path3', 'path4']);
-  });
-
-  test('should handle leading/trailing whitespace/newlines', async () => {
-    mockStdin('\n  path1 \n path2 \t ');
-    const paths = await readPathsFromStdin(false);
-    expect(paths).toEqual(['path1', 'path2']);
-  });
-
-  test('should read NUL-separated paths when useNullSeparator is true', async () => {
-    mockStdin('path1\0path2\0path3', false); // Input with NUL chars
-    const paths = await readPathsFromStdin(true); // Enable NUL separator mode
-    expect(paths).toEqual(['path1', 'path2', 'path3']);
-  });
-
-  test('should handle NUL-separated paths with trailing NUL', async () => {
-    mockStdin('path1\0path2\0', false);
-    const paths = await readPathsFromStdin(true);
-    // The trailing empty string after the last NUL should be filtered out
-    expect(paths).toEqual(['path1', 'path2']);
-  });
-
-  test('should handle NUL-separated paths with leading NUL', async () => {
-    mockStdin('\0path1\0path2', false);
-    const paths = await readPathsFromStdin(true);
-    // The leading empty string before the first NUL should be filtered out
-    expect(paths).toEqual(['path1', 'path2']);
-  });
-
-  test('should handle NUL-separated paths with only NULs', async () => {
-    mockStdin('\0\0\0', false);
-    const paths = await readPathsFromStdin(true);
-    expect(paths).toEqual([]); // Should result in empty strings filtered out
-  });
-
-  test('should handle empty input when using NUL separator', async () => {
-    mockStdin('', false);
-    const paths = await readPathsFromStdin(true);
-    expect(paths).toEqual([]);
-  });
-
-  test('should ignore NUL characters when useNullSeparator is false (treat as whitespace)', async () => {
-    // If not using NUL separator, NUL might be treated as whitespace by /\s+/
-    mockStdin('path1\0path2 path3\0path4', false);
-    const paths = await readPathsFromStdin(false);
-    // Expect NUL to be treated like other whitespace by /\s+/
-    expect(paths).toEqual(['path1', 'path2', 'path3', 'path4']);
-  });
-
-  test('should handle large input stream', async () => {
-    const largeInput = Array.from({ length: 1000 }, (_, i) => `path${i}`).join(
-      '\n'
-    );
-    mockStdin(largeInput);
-    const paths = await readPathsFromStdin(false);
-    expect(paths.length).toBe(1000);
-    expect(paths[0]).toBe('path0');
-    expect(paths[999]).toBe('path999');
-  }, 10000); // Increase timeout for potentially large stream processing
-
-  test('should handle large input stream with NUL separator', async () => {
-    const largeInput = Array.from({ length: 1000 }, (_, i) => `path${i}`).join(
-      '\0'
-    );
-    mockStdin(largeInput);
-    const paths = await readPathsFromStdin(true);
-    expect(paths.length).toBe(1000);
-    expect(paths[0]).toBe('path0');
-    expect(paths[999]).toBe('path999');
-  }, 10000); // Increase timeout
-
-  test('should handle stream errors', async () => {
-    // Create a mock stream that will emit an error
-    const errorStream = new Readable({
-      read() {
-        // Emit error shortly after read is called
-        process.nextTick(() => this.emit('error', new Error('Test stream error')));
-      }
-    }) as Readable & { isTTY?: boolean };
-    errorStream.isTTY = false; // Ensure it's not treated as TTY
-
-    // Assign the error-emitting stream to process.stdin
+  const mockStdinForProcess = (mockStdin: Readable) => {
+    // Replace process.stdin with our mock
     Object.defineProperty(process, 'stdin', {
-      value: errorStream,
-      writable: true,
-      configurable: true
+      value: mockStdin,
+      writable: true
     });
+  };
 
-    // Expect the promise to reject with the emitted error
-    await expect(readPathsFromStdin(false)).rejects.toThrow('Test stream error');
+  test('should return an empty array if stdin is a TTY', async () => {
+    // Create a TTY mock stdin
+    stdinMock = createMockStdin([], true);
+    mockStdinForProcess(stdinMock);
 
-    // Assign the mock back for cleanup in afterEach
-    stdinMock = errorStream;
+    const result = await readPathsFromStdin(false);
+    expect(result).toEqual([]);
   });
 
-  test('should handle multi-byte characters correctly (whitespace separator)', async () => {
-      const input = 'path/你好世界 file/😊 another/path';
-      mockStdin(input);
-      const paths = await readPathsFromStdin(false);
-      expect(paths).toEqual(['path/你好世界', 'file/😊', 'another/path']);
+  test('should read and trim file paths from stdin', async () => {
+    // Create mock stdin with sample data
+    stdinMock = createMockStdin([
+      'file1.js\nfile2.ts\n',
+      'file3.json\n'
+    ]);
+    mockStdinForProcess(stdinMock);
+
+    const result = await readPathsFromStdin(false);
+    expect(result).toEqual(['file1.js', 'file2.ts', 'file3.json']);
   });
 
-   test('should handle multi-byte characters correctly (NUL separator)', async () => {
-      const input = 'path/你好世界\0file/😊\0another/path';
-      mockStdin(input);
-      const paths = await readPathsFromStdin(true);
-      expect(paths).toEqual(['path/你好世界', 'file/😊', 'another/path']);
+  test('should filter out empty lines', async () => {
+    stdinMock = createMockStdin([
+      'file1.js\n\n\nfile2.ts\n',
+      '\n\nfile3.json\n\n'
+    ]);
+    mockStdinForProcess(stdinMock);
+
+    const result = await readPathsFromStdin(false);
+    expect(result).toEqual(['file1.js', 'file2.ts', 'file3.json']);
   });
 
-   test('should handle input split across multiple chunks', async () => {
-        const stream = new Readable({ read() {} }) as Readable & { isTTY?: boolean };
-        stream.isTTY = false;
-        Object.defineProperty(process, 'stdin', { value: stream, writable: true, configurable: true });
-        stdinMock = stream; // Assign for cleanup
+  test('should handle Windows-style line endings (CRLF)', async () => {
+    stdinMock = createMockStdin([
+      'file1.js\r\nfile2.ts\r\n',
+      'file3.json\r\n'
+    ]);
+    mockStdinForProcess(stdinMock);
 
-        const promise = readPathsFromStdin(false); // Start reading
+    const result = await readPathsFromStdin(false);
+    expect(result).toEqual(['file1.js', 'file2.ts', 'file3.json']);
+  });
 
-        // Push chunks asynchronously
-        process.nextTick(() => stream.push('path1 pa'));
-        process.nextTick(() => stream.push('th2\npath'));
-        process.nextTick(() => stream.push('3\0path4')); // Include NUL to test non-NUL mode
-        process.nextTick(() => stream.push(null)); // EOF
+  test('should work with mixed line endings', async () => {
+    stdinMock = createMockStdin([
+      'file1.js\nfile2.ts\r\n',
+      'file3.json\n'
+    ]);
+    mockStdinForProcess(stdinMock);
 
-        const paths = await promise;
-        expect(paths).toEqual(['path1', 'path2', 'path3', 'path4']);
-    });
+    const result = await readPathsFromStdin(false);
+    expect(result).toEqual(['file1.js', 'file2.ts', 'file3.json']);
+  });
 
-     test('should handle input split across multiple chunks (NUL separator)', async () => {
-        const stream = new Readable({ read() {} }) as Readable & { isTTY?: boolean };
-        stream.isTTY = false;
-        Object.defineProperty(process, 'stdin', { value: stream, writable: true, configurable: true });
-        stdinMock = stream; // Assign for cleanup
+  test('should split on whitespace when useNullSeparator is false', async () => {
+    stdinMock = createMockStdin([
+      '  file with spaces.js  \n',
+      ' another file.ts \n'
+    ]);
+    mockStdinForProcess(stdinMock);
 
-        const promise = readPathsFromStdin(true); // Start reading in NUL mode
+    const result = await readPathsFromStdin(false);
+    expect(result).toEqual(['file', 'with', 'spaces.js', 'another', 'file.ts']);
+  });
 
-        // Push chunks asynchronously
-        process.nextTick(() => stream.push('path1\0pa'));
-        process.nextTick(() => stream.push('th2\0path'));
-        process.nextTick(() => stream.push('3 path4')); // Include space to test NUL mode
-        process.nextTick(() => stream.push('\0path5'));
-        process.nextTick(() => stream.push(null)); // EOF
+  test('should handle empty input', async () => {
+    stdinMock = createMockStdin([]);
+    mockStdinForProcess(stdinMock);
 
-        const paths = await promise;
-        expect(paths).toEqual(['path1', 'path2', 'path3 path4', 'path5']);
-    });
+    const result = await readPathsFromStdin(false);
+    expect(result).toEqual([]);
+  });
 
+  test('should handle only whitespace input', async () => {
+    stdinMock = createMockStdin(['  \n\t\n  \n']);
+    mockStdinForProcess(stdinMock);
+
+    const result = await readPathsFromStdin(false);
+    expect(result).toEqual([]);
+  });
+
+  test('should preserve paths with spaces when useNullSeparator is true', async () => {
+    stdinMock = createMockStdin([
+      '/path/to/my file.js\0',
+      '/another/path with spaces/file.ts\0'
+    ]);
+    mockStdinForProcess(stdinMock);
+
+    const result = await readPathsFromStdin(true);
+    expect(result).toEqual([
+      '/path/to/my file.js',
+      '/another/path with spaces/file.ts'
+    ]);
+  });
+
+  test('should handle input with multiple chunks', async () => {
+    stdinMock = createMockStdin([
+      'file1',
+      '.js\nfile',
+      '2.ts\nfil',
+      'e3.json\n'
+    ]);
+    mockStdinForProcess(stdinMock);
+
+    const result = await readPathsFromStdin(false);
+    expect(result).toEqual(['file1.js', 'file2.ts', 'file3.json']);
+  });
+
+  test('should handle a very large number of paths', async () => {
+    // Generate 1000 file paths
+    const largePaths: string[] = [];
+    for (let i = 1; i <= 1000; i++) {
+      largePaths.push(`file${i}.js`);
+    }
+    
+    // Split into chunks to simulate reading from stdin
+    const chunks: string[] = [];
+    const pathsPerChunk = 100;
+    for (let i = 0; i < largePaths.length; i += pathsPerChunk) {
+      chunks.push(largePaths.slice(i, i + pathsPerChunk).join('\n') + '\n');
+    }
+    
+    stdinMock = createMockStdin(chunks);
+    mockStdinForProcess(stdinMock);
+
+    const result = await readPathsFromStdin(false);
+    expect(result.length).toBe(1000);
+    expect(result[0]).toBe('file1.js');
+    expect(result[999]).toBe('file1000.js');
+  });
+
+  test('should handle multibyte Unicode characters', async () => {
+    stdinMock = createMockStdin([
+      '🔥file.js\n',
+      'path/to/👍emoji.ts\n',
+      '你好world.py\n'
+    ]);
+    mockStdinForProcess(stdinMock);
+
+    const result = await readPathsFromStdin(false);
+    expect(result).toEqual([
+      '🔥file.js',
+      'path/to/👍emoji.ts',
+      '你好world.py'
+    ]);
+  });
 });

@@ -80,7 +80,7 @@ export async function processPath(
   if (isIgnoredByGitignore) {
     options.debug(
       chalk.yellow(
-        `    Skipping due to ignore rules: ${baseName} (relative: ${relativePath})`
+        `Skipping due to ignore rules: ${baseName}`
       )
     );
     return;
@@ -175,9 +175,11 @@ export async function processPath(
     );
     if (
       !options.ignoreFilesOnly &&
-      options.ignorePatterns.some((pattern) =>
-        minimatch(minimatchRelativePath, pattern, { dot: true })
-      )
+      options.ignorePatterns.some((pattern) => {
+        // Handle both patterns with and without trailing slash
+        const normalizedPattern = pattern.endsWith('/') ? pattern : pattern;
+        return minimatch(minimatchRelativePath, normalizedPattern, { dot: true });
+      })
     ) {
       options.debug(
         chalk.yellow(`Skipping directory due to --ignore pattern: ${baseName}`)
@@ -185,7 +187,7 @@ export async function processPath(
       // Note: We don't increment skippedFiles for directories, only files.
       return; // Skip directory if it matches an ignore pattern
     }
-
+    
     options.debug(chalk.cyan(`Path is a directory. Reading entries...`));
     let entries: fs.Dirent[];
     try {

@@ -1,4 +1,4 @@
-const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+const units = ['B', 'KB', 'MB', 'GB', 'TB'];
 
 /**
  * Rounds a number to a specified number of decimal places.
@@ -19,47 +19,53 @@ function roundHalfUp(num: number, decimals: number): number {
  */
 export function formatBytes(bytes: number, decimals: number = 2): string {
   if (bytes === 0) return '0 B';
-  // Handle potential non-numeric inputs gracefully
-  if (isNaN(bytes)) return '0 B'; // Return '0 B' for NaN
-  // Handle Infinity - apply sign correctly
+  if (isNaN(bytes)) return '0 B';
   if (!isFinite(bytes)) return `${bytes < 0 ? '-' : ''}Infinity B`;
 
-  // Handle negative numbers - apply sign at the end
   const sign = bytes < 0 ? '-' : '';
   const absoluteBytes = Math.abs(bytes);
 
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
 
-  // Determine the appropriate unit index
-  // Use Math.max to handle bytes < 1 correctly (log(bytes) would be negative)
   let i = 0;
   if (absoluteBytes > 0) {
-      // Calculate initial index based on logarithm
-      i = Math.floor(Math.log(absoluteBytes) / Math.log(k));
+    // Determine initial unit index
+    i = Math.floor(Math.log(absoluteBytes) / Math.log(k));
   }
-
-  // Ensure index is within the bounds of our units array initially
   i = Math.min(i, units.length - 1);
 
-  // Calculate the value in the chosen unit
-  let valueInUnit = absoluteBytes / Math.pow(k, i);
+  // Calculate the value in the initial unit
+  const valueInCurrentUnit = absoluteBytes / Math.pow(k, i);
 
-  // Check if the value is >= k (with tolerance) and we can move to the next unit
-  if (i < units.length - 1 && valueInUnit >= k - 1e-9) {
-      i++; // Increment unit index
-      valueInUnit /= k; // Adjust value for the new unit
+  let finalValue = valueInCurrentUnit;
+  let unitIndex = i;
+
+  // Only check for unit change if not already at the highest unit
+  if (unitIndex < units.length - 1) {
+    const roundedValueCurrentUnit = roundHalfUp(valueInCurrentUnit, dm);
+
+    // *** TOLERANCE FIX LOGIC ***
+    const tolerance = 1e-9; // A small tolerance for floating point comparison
+    // If the rounded value is close enough to k (within tolerance)
+    if (Math.abs(roundedValueCurrentUnit - k) < tolerance) {
+      finalValue = k; // Set the value to display as exactly k
+      // DO NOT increment unitIndex, stay in the current unit
+    }
+    // If the rounded value is definitely GREATER than k
+    else if (roundedValueCurrentUnit > k) {
+      unitIndex++; // Move to the next unit
+      finalValue = absoluteBytes / Math.pow(k, unitIndex); // Calculate value in the new unit
+    }
+    // If the rounded value is LESS than k, do nothing.
+    // *** END TOLERANCE FIX LOGIC ***
   }
 
-  // Final unit index
-  const unitIndex = i;
-
-  // Only apply decimals if the unit is not 'B'
-  const valueString = unitIndex === 0
-      ? String(roundHalfUp(valueInUnit, 0)) // Use roundHalfUp for Bytes as well for consistency
-      // Use reliable rounding and then format to fixed decimals
-      : roundHalfUp(valueInUnit, dm).toFixed(dm);
-
+  // Format the finalValue based on the determined unitIndex
+  const valueString =
+    unitIndex === 0
+      ? String(roundHalfUp(finalValue, 0)) // Bytes are rounded to 0 decimals
+      : roundHalfUp(finalValue, dm).toFixed(dm); // Others use specified decimals
 
   return `${sign}${valueString} ${units[unitIndex]}`;
 }

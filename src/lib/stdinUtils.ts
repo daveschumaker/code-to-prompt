@@ -15,7 +15,6 @@ export async function readPathsFromStdin(
 
   const chunks: Buffer[] = [];
   const stdinStream: Readable = process.stdin;
-
   return new Promise((resolve, reject) => {
     stdinStream.on('readable', () => {
       let chunk;
@@ -36,8 +35,8 @@ export async function readPathsFromStdin(
         // Split by NUL character and filter out empty strings
         paths = completeInput.split('\0').filter((p) => p.length > 0);
       } else {
-        // Split by any whitespace and filter out empty strings
-        paths = completeInput.split(/\s+/).filter((p) => p.length > 0);
+        // Split by any whitespace OR NUL character(s) and filter empty strings
+        paths = completeInput.split(/[\s\0]+/).filter((p) => p.length > 0);
       }
       resolve(paths);
     });
