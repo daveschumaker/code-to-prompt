@@ -500,9 +500,9 @@ async function readPathsFromStdin(
       finalDebug(chalk.blue('Clipboard output mode enabled. Buffering output.'));
       outputBuffer = '';
       writer = (text: string) => {
-        // Append to buffer, assuming printers add their own newlines
+        // Append to buffer and add a newline, as printers call writer per logical line.
         if (outputBuffer !== null) {
-          outputBuffer += text;
+          outputBuffer += text + '\n';
         }
       };
     } else if (argv.output) {
