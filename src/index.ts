@@ -2,7 +2,7 @@
 
 // src/index.ts
 
-// Using dynamic import for clipboardy to handle ESM compatibility
+// Import utilities instead of direct clipboardy import
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import fs from 'fs'; // Node's File System module
@@ -26,6 +26,7 @@ import { findCommonAncestor } from './lib/pathUtils'; // Add this line
 import { readPathsFromStdin } from './lib/stdinUtils'; // Add this line
 import { formatBytes } from './lib/formatUtils'; // Add this line
 import { processPath, ProcessPathOptions } from './lib/processor'; // Add this line
+import { writeClipboardSafe } from './lib/clipWriter'; // Import clipWriter
 
 // --- Main CLI Execution ---
 
@@ -493,9 +494,8 @@ import { processPath, ProcessPathOptions } from './lib/processor'; // Add this l
     } else if (useClipboard && outputBuffer !== null) {
       // Write to clipboard if clipboard mode was used
       try {
-        // Dynamically import clipboardy (ESM module)
-        const clipboardy = await import('clipboardy');
-        await clipboardy.default.write(outputBuffer);
+        // Use the safe clipboard writer
+        await writeClipboardSafe(outputBuffer);
         // Log success to stderr since stdout isn't used for primary output in clipboard mode
         console.error(chalk.green('Output successfully copied to clipboard.'));
       } catch (err) {

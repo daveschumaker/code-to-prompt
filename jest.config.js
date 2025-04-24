@@ -11,7 +11,11 @@ module.exports = {
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest' // Use ts-jest to transform TypeScript files
   },
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node']
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  // Handle ESM modules
+  transformIgnorePatterns: [
+    'node_modules/(?!(uuid)/)'
+  ]
   // Optional: Setup files, coverage reporting, etc.
   // setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'], // If you need setup before each test suite
   // collectCoverage: true, // Enable coverage reporting

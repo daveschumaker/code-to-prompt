@@ -9,6 +9,52 @@ import { printPath, Writer } from './printers';
 import { BINARY_FILE_EXTENSIONS } from './constants';
 import type { DebugLogger } from './config'; // Import DebugLogger type
 
+// Simple implementation of concurrency limiter
+class Limiter {
+  private concurrency: number;
+  private running: number = 0;
+  private queue: Array<() => void> = [];
+
+  constructor(concurrency: number) {
+    this.concurrency = concurrency;
+  }
+
+  async add<T>(fn: () => Promise<T>): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      this.queue.push(() => {
+        this.running++;
+        
+        try {
+          const result = fn();
+          result
+            .then(resolve)
+            .catch(reject)
+            .finally(() => {
+              this.running--;
+              this.next();
+            });
+        } catch (err) {
+          this.running--;
+          this.next();
+          reject(err);
+        }
+      });
+      
+      this.next();
+    });
+  }
+
+  private next(): void {
+    if (this.running < this.concurrency && this.queue.length > 0) {
+      const nextTask = this.queue.shift();
+      if (nextTask) nextTask();
+    }
+  }
+}
+
+// Limit concurrent file operations to avoid overwhelming the system
+const limit = new Limiter(10); // Process up to 10 files/directories concurrently
+
 // Define and export the options interface
 export interface ProcessPathOptions {
   extensions: string[];
@@ -207,11 +253,14 @@ export async function processPath(
     // Sort entries for consistent order
     entries.sort((a, b) => a.name.localeCompare(b.name));
 
-    for (const entry of entries) {
+    // Create an array of tasks and process them in parallel
+    const subTasks = entries.map(entry => {
       const entryPath = path.join(targetPath, entry.name);
-      // Pass the same options down, including the mainIg instance
-      // The filtering logic at the start of processPath will handle each entry
-      await processPath(entryPath, options);
-    }
+      // Wrap each task with our limiter to control concurrency
+      return limit.add(() => processPath(entryPath, options));
+    });
+    
+    // Wait for all subtasks to complete
+    await Promise.all(subTasks);
   } // End isDirectory block
 } // End processPath function
