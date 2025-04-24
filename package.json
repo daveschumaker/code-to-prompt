@@ -39,11 +39,13 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.1.2",
+    "clipboardy": "^4.0.0",
     "ignore": "^7.0.3",
     "minimatch": "^10.0.1",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@types/clipboardy": "^1.1.0",
     "@types/jest": "^29.5.14",
     "@types/minimatch": "^5.1.2",
     "@types/node": "^22.14.1",
