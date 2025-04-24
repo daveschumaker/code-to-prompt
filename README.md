@@ -6,6 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://badge.fury.io/js/code-to-prompt.svg)](https://badge.fury.io/js/code-to-prompt)
+[![Changelog](https://img.shields.io/badge/changelog-view-blue)](CHANGELOG.md)
 
 A Node.js command-line utility to recursively gather files from specified paths, format their content, and output everything suitable for pasting into Large Language Model (LLM) prompts.
 
@@ -260,6 +261,10 @@ Contributions are welcome! To contribute, please follow these steps:
 6. Push to your fork (`git push origin my-feature`).
 7. [Open a pull request](https://github.com/daveschumaker/code-to-prompt/pulls) against the main repository.
 8. Address any review comments.
+
+## Changelog
+
+See the [CHANGELOG.md](CHANGELOG.md) file for details on all version changes.
 
 ## License
 
