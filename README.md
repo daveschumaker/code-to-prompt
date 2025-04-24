@@ -126,6 +126,7 @@ find ./src -name "*.ts" -print0 | code-to-prompt -0
 | `--cxml`              | `-c`  | Output in Claude-friendly XML format. Mutually exclusive with `-m`.                    | `false`                                                    |
 | `--markdown`          | `-m`  | Output in Markdown format with fenced code blocks. Mutually exclusive with `-c`.       | `false`                                                    |
 | `--line-numbers`      | `-n`  | Add line numbers to the content of each file in the output.                            | `false`                                                    |
+| `--clipboard`         | `-C`  | Copy the output directly to the system clipboard. Conflicts with `-o`.                 | `false`                                                    |
 | `--null`              | `-0`  | Use NUL (`\0`) character as separator when reading paths from stdin.                   | `false`                                                    |
 | `--tree`              |       | Prepend a file tree structure overview to the output.                                  | `false`                                                    |
 | `--verbose`           | `-V`  | Enable verbose debug logging to stderr.                                                | `false`                                                    |
@@ -207,6 +208,14 @@ code-to-prompt \
   ./src/types \
   ./assets
 ```
+
+#### 11. Process files and copy the result directly to the clipboard
+
+```bash
+code-to-prompt ./src -e .ts --markdown -C
+```
+
+This processes TypeScript files in `src`, formats the output as Markdown, and copies the entire result to the system clipboard instead of printing it to standard output or a file.
 
 ## Configuration
 
