@@ -55,8 +55,9 @@ export function loadConfig(configPath: string, debug: DebugLogger): Record<strin
     }
 
     const configContent = fs.readFileSync(configPath, 'utf-8');
-    debug(chalk.green(`Successfully read config file: ${configPath}`));
-    const parsedConfig = JSON.parse(configContent);
+    const parsedConfig = JSON.parse(configContent); // Parse first
+    debug(chalk.green(`Successfully read and parsed config file: ${configPath}`)); // Log success after parsing
+
     // Basic validation: ensure it's an object
     if (typeof parsedConfig !== 'object' || parsedConfig === null) {
         console.error(chalk.red(`Error: Invalid configuration format in ${configPath}. Expected a JSON object.`));
@@ -69,6 +70,16 @@ export function loadConfig(configPath: string, debug: DebugLogger): Record<strin
         // Use console.error to keep this informational message separate from stdout
         console.error(chalk.blue(`ℹ️ Loaded configuration from default path: ${configPath}`));
     }
+
+    // Log the loaded configuration values if verbose logging is enabled
+    debug(chalk.blue(`--- Configuration loaded from ${configPath}: ---`));
+    for (const key in parsedConfig) {
+      if (Object.prototype.hasOwnProperty.call(parsedConfig, key)) {
+        // Log key and stringified value
+        debug(chalk.blue(`  ${key}: ${JSON.stringify(parsedConfig[key])}`));
+      }
+    }
+    debug(chalk.blue(`--- End of loaded configuration ---`));
 
     return parsedConfig;
   } catch (err: any) {

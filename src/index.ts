@@ -158,7 +158,7 @@ import { processPath, ProcessPathOptions } from './lib/processor'; // Add this l
         type: 'boolean',
         description: 'Copy the output directly to the system clipboard.',
         default: false,
-        conflicts: 'output' // Cannot use --clipboard and --output together
+        // conflicts: 'output' // Remove this - we will check manually
       })
       .option('null', {
         alias: '0',
@@ -187,6 +187,22 @@ import { processPath, ProcessPathOptions } from './lib/processor'; // Add this l
         'strip-aliased': true
       })
       .parseAsync(); // Yargs parsing happens here
+
+    // --- Debug: Log the final resolved argv object ---
+    const finalDebugLogArgs = { ...argv };
+    // Avoid logging potentially large stdin content if read early
+    // Assign an array containing the string '[paths]'
+    if (finalDebugLogArgs._) finalDebugLogArgs._ = ['[paths]'];
+    debug(chalk.magenta('--- Final Resolved Yargs argv: ---'));
+    debug(chalk.magenta(JSON.stringify(finalDebugLogArgs, null, 2)));
+    debug(chalk.magenta('--- End of Resolved argv ---'));
+    // --- End Debug ---
+
+    // --- Manual Conflict Check ---
+    if (argv.clipboard && argv.output) {
+      // Throw the error manually if both options are present in the final argv
+      throw new Error('Arguments clipboard (-C) and output (-o) are mutually exclusive.');
+    }
 
     // Re-assign debug based on final parsed argv, in case config file set verbose
     const finalVerbose = argv.verbose ?? false;
