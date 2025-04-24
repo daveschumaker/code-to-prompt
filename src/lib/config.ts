@@ -62,6 +62,14 @@ export function loadConfig(configPath: string, debug: DebugLogger): Record<strin
         console.error(chalk.red(`Error: Invalid configuration format in ${configPath}. Expected a JSON object.`));
         return {};
     }
+
+    // Check if the loaded path is the default XDG path and if it contained settings
+    const defaultXdgPath = getXdgConfigPath();
+    if (configPath === defaultXdgPath && Object.keys(parsedConfig).length > 0) {
+        // Use console.error to keep this informational message separate from stdout
+        console.error(chalk.blue(`ℹ️ Loaded configuration from default path: ${configPath}`));
+    }
+
     return parsedConfig;
   } catch (err: any) {
     // Handle JSON parsing errors specifically
