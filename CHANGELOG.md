@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-04-24
+
 ### Added
 - Parallel directory processing for improved performance
 - Safe clipboard handling for large files using temporary files
+- CHANGELOG.md to track version changes
 
 ### Fixed
 - ESM compatibility issue with clipboardy module
