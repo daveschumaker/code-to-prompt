@@ -18,11 +18,18 @@ export default async function run(): Promise<void> {
   const { argv, debug } = await parseArgs();
   const stats = { foundFiles: 0, skippedFiles: 0 };
 
+  // Paths to add only to tree
+  const addToTreeRaw: string[] = Array.isArray(argv['add-to-tree'])
+    ? argv['add-to-tree']
+    : argv['add-to-tree']
+      ? [argv['add-to-tree']]
+      : [];
   // Collect input paths
   const cliPaths = (argv._ as string[]).filter((p) => p !== 'init');
   const stdinPaths = await readPathsFromStdin(argv.null ?? false);
   const allPaths = [...cliPaths, ...stdinPaths];
-  if (allPaths.length === 0) {
+  // Require at least one content path, unless tree+add-to-tree is used
+  if (allPaths.length === 0 && !(argv.tree && addToTreeRaw.length > 0)) {
     console.error(
       chalk.yellow(
         'No input paths provided. Use --help for usage or `code-to-prompt init` to create a config.'
@@ -31,12 +38,7 @@ export default async function run(): Promise<void> {
     process.exit(1);
   }
 
-  // Paths to add only to tree
-  const addToTreeRaw: string[] = Array.isArray(argv['add-to-tree'])
-    ? argv['add-to-tree']
-    : argv['add-to-tree']
-    ? [argv['add-to-tree']]
-    : [];
+  // (addToTreeRaw already defined above)
 
   // Resolve absolute paths
   const absolutePaths = allPaths.map((p) => path.resolve(p));
