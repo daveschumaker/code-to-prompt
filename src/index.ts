@@ -170,6 +170,13 @@ import { writeClipboardSafe } from './lib/clipWriter'; // Import clipWriter
         default: false,
         description: 'Generate file tree at top'
       })
+      .option('add-to-tree', {
+        type: 'string',
+        array: true,
+        nargs: 1,
+        default: [],
+        description: 'Add specified paths to the file tree only, without exporting their contents'
+      })
       .option('verbose', {
         alias: 'V',
         type: 'boolean',
@@ -221,6 +228,12 @@ import { writeClipboardSafe } from './lib/clipWriter'; // Import clipWriter
     const cliPaths = (argv._ as string[]).filter((arg) => arg !== 'init') || []; // Exclude 'init' command from paths
     const stdinPaths = await readPathsFromStdin(argv.null ?? false);
     const allPaths = [...cliPaths, ...stdinPaths];
+    // Collect paths to add only to tree (no content)
+    const addToTreeRaw: string[] = Array.isArray(argv['add-to-tree'])
+      ? argv['add-to-tree']
+      : argv['add-to-tree']
+        ? [argv['add-to-tree']]
+        : [];
 
     // Check if paths are needed (they aren't for 'init', which exits earlier)
     if (allPaths.length === 0 && argv._[0] !== 'init') {
@@ -393,10 +406,14 @@ import { writeClipboardSafe } from './lib/clipWriter'; // Import clipWriter
 
     // --- Process Paths ---
     const absolutePaths = allPaths.map((p) => path.resolve(p)); // Resolve all paths first
+    // Paths added only to tree (no content)
+    const absoluteAddToTreePaths = addToTreeRaw.map((p) => path.resolve(p));
+    // Combined paths for tree generation
+    const absoluteTreePaths = [...absolutePaths, ...absoluteAddToTreePaths];
 
     if (argv.tree) {
       // Calculate the common ancestor directory for the tree root
-      const treeDisplayRoot = findCommonAncestor(absolutePaths);
+      const treeDisplayRoot = findCommonAncestor(absoluteTreePaths);
       finalDebug(
         chalk.blue(`Tree display root calculated as: ${treeDisplayRoot}`)
       ); // Use finalDebug
@@ -418,7 +435,7 @@ import { writeClipboardSafe } from './lib/clipWriter'; // Import clipWriter
         ignorePatterns, // CLI --ignore patterns
         ignoreFilesOnly: argv['ignore-files-only'] ?? false // apply ignore only to files if set
       };
-      const treeStr = await generateFileTree(absolutePaths, treeOptions);
+      const treeStr = await generateFileTree(absoluteTreePaths, treeOptions);
       writer(treeStr.trimEnd());
       writer('---');
       writer('');
