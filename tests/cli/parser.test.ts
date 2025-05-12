@@ -1,7 +1,7 @@
 import os from 'os';
 import fs from 'fs';
 import path from 'path';
-import { parseArgs } from '../src/cli/parser';
+import { parseArgs } from '../../src/cli/parser';
 
 describe('CLI Argument Parser', () => {
   let originalArgv: string[];
