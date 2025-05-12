@@ -130,6 +130,7 @@ find ./src -name "*.ts" -print0 | code-to-prompt -0
 | `--clipboard`         | `-C`  | Copy the output directly to the system clipboard. Conflicts with `-o`.                 | `false`                                                    |
 | `--null`              | `-0`  | Use NUL (`\0`) character as separator when reading paths from stdin.                   | `false`                                                    |
 | `--tree`              |       | Prepend a file tree structure overview to the output.                                  | `false`                                                    |
+| `--add-to-tree`       |       | Add specified paths to the file tree only, without exporting their contents.           | `[]`                                                       |
 | `--verbose`           | `-V`  | Enable verbose debug logging to stderr.                                                | `false`                                                    |
 | `--help`              | `-h`  | Show help message.                                                                     |                                                            |
 | `--version`           | `-v`  | Show version number.                                                                   |                                                            |
