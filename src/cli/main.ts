@@ -19,10 +19,10 @@ export default async function run(): Promise<void> {
   const stats = { foundFiles: 0, skippedFiles: 0 };
 
   // Paths to add only to tree
-  const addToTreeRaw: string[] = Array.isArray(argv['add-to-tree'])
-    ? argv['add-to-tree']
-    : argv['add-to-tree']
-      ? [argv['add-to-tree']]
+  const addToTreeRaw: string[] = Array.isArray((argv as any).addToTree)
+    ? (argv as any).addToTree
+    : (argv as any).addToTree
+      ? [(argv as any).addToTree]
       : [];
   // Collect input paths
   const cliPaths = (argv._ as string[]).filter((p) => p !== 'init');

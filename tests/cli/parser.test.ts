@@ -35,7 +35,7 @@ describe('CLI Argument Parser', () => {
     expect(argv.extension).toEqual([]);
     expect(argv.markdown).toBe(false);
     expect(argv.cxml).toBe(false);
-    expect(argv['add-to-tree']).toEqual([]);
+    expect((argv as any).addToTree).toEqual([]);
   });
 
   it('parses multiple extensions and tree flag correctly', async () => {
@@ -55,7 +55,7 @@ describe('CLI Argument Parser', () => {
       'bar',
     ];
     const { argv } = await parseArgs();
-    expect(argv['add-to-tree']).toEqual(['foo', 'bar']);
+    expect((argv as any).addToTree).toEqual(['foo', 'bar']);
   });
 
   it('throws on clipboard and output conflict', async () => {

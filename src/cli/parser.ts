@@ -65,7 +65,14 @@ export async function parseArgs(): Promise<{ argv: any; debug: DebugLogger }> {
     .option('clipboard', { alias: 'C', type: 'boolean', default: false, description: 'Copy output to clipboard' })
     .option('null', { alias: '0', type: 'boolean', default: false, description: 'Use NUL separator for stdin' })
     .option('tree', { type: 'boolean', default: false, description: 'Generate file tree at top' })
-    .option('add-to-tree', { type: 'string', array: true, nargs: 1, default: [], description: 'Add specified paths to the file tree only, without exporting their contents' })
+    .option('addToTree', {
+      alias: 'add-to-tree',
+      type: 'string',
+      array: true,
+      nargs: 1,
+      default: [],
+      description: 'Add specified paths to the file tree only, without exporting their contents'
+    })
     .option('verbose', { alias: 'V', type: 'boolean', default: false, description: 'Enable verbose debug logging' })
     .help().alias('help', 'h')
     .version().alias('version', 'v')
@@ -76,7 +83,7 @@ export async function parseArgs(): Promise<{ argv: any; debug: DebugLogger }> {
       if (err) throw err;
       throw new Error(msg);
     })
-    .parserConfiguration({ 'duplicate-arguments-array': true, 'strip-aliased': true })
+    .parserConfiguration({ 'duplicate-arguments-array': true, 'strip-aliased': false })
     .parseAsync();
 
   // Manual conflict checks
@@ -93,5 +100,19 @@ export async function parseArgs(): Promise<{ argv: any; debug: DebugLogger }> {
     if (finalVerbose) console.error(msg);
   };
   finalDebug(chalk.magenta('Verbose logging enabled.'));
+  // Normalize addToTree flag: respect both dashed and camel-case keys
+  // yargs may assign to argv['add-to-tree'] or argv.addToTree
+  const rawAdd: string | string[] | undefined = (argv['add-to-tree'] as any) ?? argv.addToTree;
+  let normalized: string[];
+  if (rawAdd === undefined) {
+    normalized = [];
+  } else if (Array.isArray(rawAdd)) {
+    normalized = rawAdd as string[];
+  } else {
+    normalized = [rawAdd as string];
+  }
+  // Assign normalized array to both camelCase and dashed keys
+  argv.addToTree = normalized;
+  argv['add-to-tree'] = normalized;
   return { argv, debug: finalDebug };
 }
