@@ -70,6 +70,12 @@ export async function parseArgs(): Promise<{ argv: any; debug: DebugLogger }> {
     .help().alias('help', 'h')
     .version().alias('version', 'v')
     .strictOptions()
+    .exitProcess(false)
+    .fail((msg, err) => {
+      // Prevent yargs from printing to stderr; rethrow error or message
+      if (err) throw err;
+      throw new Error(msg);
+    })
     .parserConfiguration({ 'duplicate-arguments-array': true, 'strip-aliased': true })
     .parseAsync();
 
