@@ -133,7 +133,6 @@ describe('processPath', () => {
         p === path.resolve(baseProjectPath, 'node_modules') ||
         p === path.resolve(baseProjectPath, 'build')
       ) {
-        console.log(`DEBUG: fsp.stat mock returning DIRECTORY for ${p}`); // Add this
         return createMockStats(false, true);
       }
 
